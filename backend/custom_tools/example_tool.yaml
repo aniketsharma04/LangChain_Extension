@@ -1,0 +1,33 @@
+# Example custom tool — drop any .yaml file here to add a new tool
+# The backend hot-reloads it automatically (no restart needed)
+
+name: explain_for_junior
+displayName: Explain for Junior Dev
+description: Explains code in simple terms for junior developers
+category: documentation
+enabled: true
+author: OpenClaw Team
+version: 1.0.0
+
+systemPrompt: |
+  You are a patient senior developer explaining code to a junior.
+  Use simple language, avoid jargon, and give analogies where helpful.
+
+promptTemplate: |
+  Please explain this {{ctx.language}} code to a junior developer.
+  Be friendly, use simple words, and explain WHY not just WHAT.
+
+  File: {{ctx.filePath}}
+
+  ```{{ctx.language}}
+  {{args.code}}
+  ```
+
+parameters:
+  type: object
+  properties:
+    code:
+      type: string
+      description: The code to explain
+  required:
+    - code
