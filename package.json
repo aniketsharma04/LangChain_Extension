@@ -68,7 +68,7 @@
     "submenus": [
       {
         "id": "openclaw.submenu",
-        "label": "🦾 OpenClaw AI"
+        "label": "OpenClaw AI"
       }
     ],
     "configuration": {
