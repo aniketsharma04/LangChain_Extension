@@ -3,21 +3,25 @@
 #
 # REPLACES: AgenticChatEngineV2.ts, OpenClawOrchestrator.ts,
 #           ToolRegistry.ts, BuiltinTools.ts, SafetyLayer.ts
+#
+# Updated for LangGraph API (langchain v1.2.x+)
+# create_react_agent moved to langgraph.prebuilt
 # ==============================================================
 
 import os
 import time
 import asyncio
 import subprocess
-from typing import Optional, AsyncIterator
+from typing import Optional, AsyncIterator, ClassVar
 
-# ── LangChain orchestration ───────────────────────────────────────────────────
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain_core.prompts import PromptTemplate
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain.memory import ConversationBufferWindowMemory
-from langchain_core.callbacks.base import BaseCallbackHandler  # FIX #1
+# ── LangGraph agent (replaces langchain.agents) ──────────────────────────────
+from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import MemorySaver
+
+# ── LangChain core ────────────────────────────────────────────────────────────
+from langchain_core.callbacks.base import BaseCallbackHandler
 from langchain_core.tools import tool as lc_tool
+from langchain_core.messages import HumanMessage, SystemMessage
 
 # ── LangChain built-in tools ──────────────────────────────────────────────────
 from langchain_community.tools.file_management import (
@@ -31,8 +35,7 @@ from llm_router import build_llm
 
 
 # ==============================================================
-# FIX #5 — SafeShellTool: restricted shell (blocks destructive cmds)
-# Replaces bare ShellTool() with a sandboxed version
+# SafeShellTool: restricted shell (blocks destructive cmds)
 # ==============================================================
 
 from langchain_community.tools.shell.tool import ShellTool
@@ -43,7 +46,7 @@ class SafeShellTool(ShellTool):
     Prevents the LLM from running rm -rf, sudo, curl to external
     IPs, etc. even if it hallucinates or is prompt-injected.
     """
-    BLOCKED_PATTERNS = [
+    BLOCKED_PATTERNS: ClassVar[list[str]] = [
         "rm -rf /", "rm -rf ~", "sudo rm", "sudo dd",
         "dd if=/dev/zero", "dd if=/dev/random",
         "> /dev/sda", "mkfs", "fdisk",
@@ -197,7 +200,7 @@ def get_tools(workspace: str = ".") -> list:
         CopyFileTool(root_dir=workspace),
         MoveFileTool(root_dir=workspace),
         DeleteFileTool(root_dir=workspace),
-        SafeShellTool(),          # FIX #5: SafeShellTool instead of ShellTool()
+        SafeShellTool(),
         PythonREPLTool(),
         git_status, git_diff, git_log, git_suggest_commit,
         run_linter, run_tests,
@@ -207,7 +210,8 @@ def get_tools(workspace: str = ".") -> list:
 
 
 # ==============================================================
-# System prompt
+# System prompt (simplified for LangGraph — no ReAct template
+# variables needed, LangGraph handles tool descriptions internally)
 # ==============================================================
 
 SYSTEM_PROMPT = """You are OpenClaw, an expert AI coding assistant embedded in VS Code.
@@ -230,144 +234,63 @@ You have full access to the developer's workspace. Use your tools proactively.
 1. Always **read before editing** — use ReadFileTool first
 2. **Verify after changes** — run_linter or run_tests after edits
 3. Show **git diff** after making file changes
-4. For code blocks, always include the language identifier in markdown
-
-{tools}
-
-Use the following format:
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
-
-Question: {input}
-Thought: {agent_scratchpad}"""
+4. For code blocks, always include the language identifier in markdown"""
 
 
 # ==============================================================
-# FIX #4 — Session memory with TTL (prevents memory leak)
-# Sessions older than SESSION_TTL seconds are evicted automatically
+# Session memory using LangGraph MemorySaver checkpointer
 # ==============================================================
 
-_sessions: dict[str, ConversationBufferWindowMemory] = {}
+_checkpointer = MemorySaver()
 _session_timestamps: dict[str, float] = {}
 SESSION_TTL = 3600  # 1 hour
 
 
-def get_or_create_memory(session_id: str) -> ConversationBufferWindowMemory:
+def _evict_expired_sessions():
+    """Remove sessions older than SESSION_TTL."""
     now = time.time()
-
-    # Evict expired sessions
     expired = [sid for sid, t in _session_timestamps.items() if now - t > SESSION_TTL]
     for sid in expired:
-        _sessions.pop(sid, None)
+        # Clear from checkpointer storage
+        keys_to_remove = [k for k in _checkpointer.storage if k[0] == sid]
+        for k in keys_to_remove:
+            del _checkpointer.storage[k]
         _session_timestamps.pop(sid, None)
         print(f"[Session] Evicted expired session: {sid}")
 
-    if session_id not in _sessions:
-        _sessions[session_id] = ConversationBufferWindowMemory(
-            k=20,
-            memory_key="chat_history",
-            return_messages=True,
-        )
-
-    _session_timestamps[session_id] = now
-    return _sessions[session_id]
-
 
 def clear_session(session_id: str):
-    _sessions.pop(session_id, None)
+    """Clear conversation memory for a specific session."""
+    keys_to_remove = [k for k in _checkpointer.storage if k[0] == session_id]
+    for k in keys_to_remove:
+        del _checkpointer.storage[k]
     _session_timestamps.pop(session_id, None)
 
 
 # ==============================================================
-# Agent builder
+# Agent builder — uses LangGraph create_react_agent
 # ==============================================================
 
-def build_agent_executor(
+def build_agent(
     provider: str = "openai",
     model_id: Optional[str] = None,
     workspace: str = ".",
-    session_id: Optional[str] = None,
-) -> AgentExecutor:
-    llm    = build_llm(provider, model_id)
-    tools  = get_tools(workspace)
-    memory = get_or_create_memory(session_id or "default")
-    prompt = PromptTemplate.from_template(SYSTEM_PROMPT)
-    agent  = create_react_agent(llm=llm, tools=tools, prompt=prompt)
-
-    return AgentExecutor(
-        agent=agent,
-        tools=tools,
-        memory=memory,
-        verbose=True,
-        max_iterations=25,
-        handle_parsing_errors=True,
-        return_intermediate_steps=True,
+):
+    """Build a LangGraph ReAct agent with all tools."""
+    llm = build_llm(provider, model_id)
+    tools = get_tools(workspace)
+    agent = create_react_agent(
+        llm,
+        tools,
+        prompt=SYSTEM_PROMPT,
+        checkpointer=_checkpointer,
     )
-
-
-# ==============================================================
-# FIX #1 — StepCallback: now a proper LangChain BaseCallbackHandler
-# and correctly passed into executor.invoke() via config=
-# Previously: defined but never registered → tool events never fired
-# Now: inherits BaseCallbackHandler, passed via config={"callbacks": [...]}
-# ==============================================================
-
-class StepCallbackHandler(BaseCallbackHandler):
-    """
-    Collects tool call / tool result events from the agent executor
-    and pushes them into an asyncio Queue for SSE streaming.
-    """
-
-    def __init__(self, queue: asyncio.Queue, loop: asyncio.AbstractEventLoop):
-        super().__init__()
-        self._queue = queue
-        self._loop  = loop
-
-    def _put(self, item: dict):
-        asyncio.run_coroutine_threadsafe(self._queue.put(item), self._loop)
-
-    def on_tool_start(self, serialized, input_str, **kwargs):
-        self._put({
-            "type": "step",
-            "step": {
-                "type": "tool_call",
-                "toolName": serialized.get("name", "unknown"),
-                "toolArgs": {"input": str(input_str)[:200]},
-                "timestamp": int(time.time() * 1000),
-            }
-        })
-
-    def on_tool_end(self, output, **kwargs):
-        self._put({
-            "type": "step",
-            "step": {
-                "type": "tool_result",
-                "result": str(output)[:500],
-                "success": True,
-                "timestamp": int(time.time() * 1000),
-            }
-        })
-
-    def on_tool_error(self, error, **kwargs):
-        self._put({
-            "type": "step",
-            "step": {
-                "type": "tool_result",
-                "result": str(error)[:300],
-                "success": False,
-                "timestamp": int(time.time() * 1000),
-            }
-        })
+    return agent
 
 
 # ==============================================================
 # Streaming agentic run — yields SSE-compatible dicts
+# Uses LangGraph's native astream_events for real-time streaming
 # ==============================================================
 
 async def run_streaming(
@@ -377,56 +300,56 @@ async def run_streaming(
     workspace: str = ".",
     session_id: Optional[str] = None,
 ) -> AsyncIterator[dict]:
-    start      = time.time()
+    start = time.time()
     tool_calls = 0
+    sid = session_id or "default"
+
+    _evict_expired_sessions()
+    _session_timestamps[sid] = time.time()
 
     try:
-        executor   = build_agent_executor(provider, model_id, workspace, session_id)
-        loop       = asyncio.get_running_loop()
-        step_queue: asyncio.Queue = asyncio.Queue()
+        agent = build_agent(provider, model_id, workspace)
+        config = {"configurable": {"thread_id": sid}}
 
-        # FIX #1: callback is now properly instantiated and passed to invoke()
-        callback = StepCallbackHandler(step_queue, loop)
-
-        steps_collected: list = []
         final_output = ""
 
-        def run_sync():
-            nonlocal final_output, tool_calls
-            # Pass callback via config — this is the correct LangChain pattern
-            result = executor.invoke(
-                {"input": message},
-                config={"callbacks": [callback]}
-            )
-            final_output = result.get("output", "")
-            steps_collected.extend(result.get("intermediate_steps", []))
-            tool_calls = len(steps_collected)
+        async for event in agent.astream_events(
+            {"messages": [HumanMessage(content=message)]},
+            config=config,
+            version="v2",
+        ):
+            kind = event.get("event", "")
 
-        future = loop.run_in_executor(None, run_sync)
+            if kind == "on_tool_start":
+                tool_calls += 1
+                yield {
+                    "type": "step",
+                    "step": {
+                        "type": "tool_call",
+                        "toolName": event.get("name", "unknown"),
+                        "toolArgs": {"input": str(event.get("data", {}).get("input", ""))[:200]},
+                        "timestamp": int(time.time() * 1000),
+                    }
+                }
 
-        # Yield steps while agent is running
-        while not future.done():
-            try:
-                item = await asyncio.wait_for(step_queue.get(), timeout=0.1)
-                yield item
-            except asyncio.TimeoutError:
-                continue
+            elif kind == "on_tool_end":
+                yield {
+                    "type": "step",
+                    "step": {
+                        "type": "tool_result",
+                        "result": str(event.get("data", {}).get("output", ""))[:500],
+                        "success": True,
+                        "timestamp": int(time.time() * 1000),
+                    }
+                }
 
-        # Drain any remaining queued events
-        while not step_queue.empty():
-            yield await step_queue.get()
-
-        await future  # re-raise any exceptions from run_sync
-
-        # Stream the final answer in chunks
-        if final_output:
-            words = final_output.split(" ")
-            for i in range(0, len(words), 4):
-                chunk = " ".join(words[i:i + 4])
-                if i + 4 < len(words):
-                    chunk += " "
-                yield {"type": "chunk", "content": chunk}
-                await asyncio.sleep(0.01)
+            elif kind == "on_chat_model_stream":
+                chunk = event.get("data", {}).get("chunk")
+                if chunk and hasattr(chunk, "content") and chunk.content:
+                    # Only yield content from the final response (not tool-calling steps)
+                    if event.get("metadata", {}).get("langgraph_node") == "agent":
+                        final_output += chunk.content
+                        yield {"type": "chunk", "content": chunk.content}
 
     except Exception as e:
         yield {"type": "error", "error": str(e)}
@@ -453,19 +376,40 @@ async def run_simple(
     session_id: Optional[str] = None,
 ) -> dict:
     start = time.time()
+    sid = session_id or "default"
+
+    _evict_expired_sessions()
+    _session_timestamps[sid] = time.time()
+
     try:
-        executor = build_agent_executor(provider, model_id, workspace, session_id)
-        loop     = asyncio.get_running_loop()
-        result   = await loop.run_in_executor(
+        agent = build_agent(provider, model_id, workspace)
+        config = {"configurable": {"thread_id": sid}}
+
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(
             None,
-            lambda: executor.invoke({"input": message})
+            lambda: agent.invoke(
+                {"messages": [HumanMessage(content=message)]},
+                config=config,
+            )
         )
+
+        # Extract the final AI message
+        messages = result.get("messages", [])
+        output = ""
+        tool_call_count = 0
+        for msg in messages:
+            if hasattr(msg, "content") and msg.type == "ai" and not getattr(msg, "tool_calls", None):
+                output = msg.content
+            if msg.type == "tool":
+                tool_call_count += 1
+
         return {
-            "output": result.get("output", ""),
+            "output": output,
             "provider": provider,
             "model": model_id or "",
             "durationMs": int((time.time() - start) * 1000),
-            "totalToolCalls": len(result.get("intermediate_steps", [])),
+            "totalToolCalls": tool_call_count,
             "error": None,
         }
     except Exception as e:

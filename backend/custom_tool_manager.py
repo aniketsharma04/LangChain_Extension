@@ -14,7 +14,7 @@ import threading
 from typing import Optional
 from pathlib import Path
 
-from langchain.tools import StructuredTool
+from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field, ConfigDict
 
 
