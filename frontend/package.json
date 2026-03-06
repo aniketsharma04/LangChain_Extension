@@ -4,9 +4,17 @@
   "description": "Copilot-like AI chat panel powered by OpenClaw backend",
   "version": "0.1.0",
   "publisher": "openclaw",
-  "engines": { "vscode": "^1.85.0" },
-  "categories": ["AI", "Chat", "Programming Languages"],
-  "activationEvents": ["onStartupFinished"],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -14,7 +22,7 @@
         {
           "id": "openclaw-sidebar",
           "title": "OpenClaw AI",
-          "icon": "$(hubot)"
+          "icon": "media/openclaw-icon.svg"
         }
       ]
     },
@@ -29,40 +37,128 @@
       ]
     },
     "commands": [
-      { "command": "openclaw.openChat",                    "title": "OpenClaw: Open Chat Panel",         "icon": "$(comment-discussion)" },
-      { "command": "openclaw.clearChat",                   "title": "OpenClaw: Clear Chat",               "icon": "$(clear-all)" },
-      { "command": "openclaw.newSession",                  "title": "OpenClaw: New Session",              "icon": "$(add)" },
-      { "command": "openclaw.runTool",                     "title": "OpenClaw: Run Tool…",                "icon": "$(tools)" },
-      { "command": "openclaw.tool.generate_tests",         "title": "OpenClaw: 🧪 Generate Tests" },
-      { "command": "openclaw.tool.review_code",            "title": "OpenClaw: 🔍 Review Code" },
-      { "command": "openclaw.tool.find_bugs",              "title": "OpenClaw: 🐛 Find Bugs" },
-      { "command": "openclaw.tool.explain_code",           "title": "OpenClaw: 📖 Explain Code" },
-      { "command": "openclaw.tool.refactor_code",          "title": "OpenClaw: ♻️ Refactor Code" },
-      { "command": "openclaw.tool.generate_docs",          "title": "OpenClaw: 📝 Generate Docs" },
-      { "command": "openclaw.tool.security_analysis",      "title": "OpenClaw: 🔒 Security Analysis" },
-      { "command": "openclaw.tool.optimize_performance",   "title": "OpenClaw: ⚡ Optimize Performance" },
-      { "command": "openclaw.tool.analyze_complexity",     "title": "OpenClaw: 📊 Analyze Complexity" },
-      { "command": "openclaw.tool.translate_code",         "title": "OpenClaw: 🔄 Translate Code" }
+      {
+        "command": "openclaw.openChat",
+        "title": "OpenClaw: Open Chat Panel",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "openclaw.clearChat",
+        "title": "OpenClaw: Clear Chat",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "openclaw.newSession",
+        "title": "OpenClaw: New Session",
+        "icon": "$(add)"
+      },
+      {
+        "command": "openclaw.runTool",
+        "title": "OpenClaw: Run Tool…",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "openclaw.tool.generate_tests",
+        "title": "OpenClaw: 🧪 Generate Tests"
+      },
+      {
+        "command": "openclaw.tool.review_code",
+        "title": "OpenClaw: 🔍 Review Code"
+      },
+      {
+        "command": "openclaw.tool.find_bugs",
+        "title": "OpenClaw: 🐛 Find Bugs"
+      },
+      {
+        "command": "openclaw.tool.explain_code",
+        "title": "OpenClaw: 📖 Explain Code"
+      },
+      {
+        "command": "openclaw.tool.refactor_code",
+        "title": "OpenClaw: ♻️ Refactor Code"
+      },
+      {
+        "command": "openclaw.tool.generate_docs",
+        "title": "OpenClaw: 📝 Generate Docs"
+      },
+      {
+        "command": "openclaw.tool.security_analysis",
+        "title": "OpenClaw: 🔒 Security Analysis"
+      },
+      {
+        "command": "openclaw.tool.optimize_performance",
+        "title": "OpenClaw: ⚡ Optimize Performance"
+      },
+      {
+        "command": "openclaw.tool.analyze_complexity",
+        "title": "OpenClaw: 📊 Analyze Complexity"
+      },
+      {
+        "command": "openclaw.tool.translate_code",
+        "title": "OpenClaw: 🔄 Translate Code"
+      }
     ],
     "menus": {
       "view/title": [
-        { "command": "openclaw.clearChat",  "when": "view == openclawChatView", "group": "navigation" },
-        { "command": "openclaw.newSession", "when": "view == openclawChatView", "group": "navigation" }
+        {
+          "command": "openclaw.clearChat",
+          "when": "view == openclawChatView",
+          "group": "navigation"
+        },
+        {
+          "command": "openclaw.newSession",
+          "when": "view == openclawChatView",
+          "group": "navigation"
+        }
       ],
       "editor/context": [
-        { "submenu": "openclaw.submenu", "when": "editorHasSelection", "group": "openclaw@1" }
+        {
+          "submenu": "openclaw.submenu",
+          "when": "editorHasSelection",
+          "group": "openclaw@1"
+        }
       ],
       "openclaw.submenu": [
-        { "command": "openclaw.tool.generate_tests",       "group": "1_analyze@1" },
-        { "command": "openclaw.tool.review_code",          "group": "1_analyze@2" },
-        { "command": "openclaw.tool.find_bugs",            "group": "1_analyze@3" },
-        { "command": "openclaw.tool.explain_code",         "group": "1_analyze@4" },
-        { "command": "openclaw.tool.refactor_code",        "group": "2_transform@1" },
-        { "command": "openclaw.tool.generate_docs",        "group": "2_transform@2" },
-        { "command": "openclaw.tool.translate_code",       "group": "2_transform@3" },
-        { "command": "openclaw.tool.security_analysis",    "group": "3_audit@1" },
-        { "command": "openclaw.tool.optimize_performance", "group": "3_audit@2" },
-        { "command": "openclaw.tool.analyze_complexity",   "group": "3_audit@3" }
+        {
+          "command": "openclaw.tool.generate_tests",
+          "group": "1_analyze@1"
+        },
+        {
+          "command": "openclaw.tool.review_code",
+          "group": "1_analyze@2"
+        },
+        {
+          "command": "openclaw.tool.find_bugs",
+          "group": "1_analyze@3"
+        },
+        {
+          "command": "openclaw.tool.explain_code",
+          "group": "1_analyze@4"
+        },
+        {
+          "command": "openclaw.tool.refactor_code",
+          "group": "2_transform@1"
+        },
+        {
+          "command": "openclaw.tool.generate_docs",
+          "group": "2_transform@2"
+        },
+        {
+          "command": "openclaw.tool.translate_code",
+          "group": "2_transform@3"
+        },
+        {
+          "command": "openclaw.tool.security_analysis",
+          "group": "3_audit@1"
+        },
+        {
+          "command": "openclaw.tool.optimize_performance",
+          "group": "3_audit@2"
+        },
+        {
+          "command": "openclaw.tool.analyze_complexity",
+          "group": "3_audit@3"
+        }
       ]
     },
     "submenus": [
@@ -82,7 +178,12 @@
         "openclaw.defaultProvider": {
           "type": "string",
           "default": "openai",
-          "enum": ["openai", "gemini", "ollama", "vllm"],
+          "enum": [
+            "openai",
+            "gemini",
+            "ollama",
+            "vllm"
+          ],
           "description": "Default LLM provider"
         },
         "openclaw.defaultModel": {
