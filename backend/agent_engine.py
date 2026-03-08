@@ -11,6 +11,7 @@
 import os
 import time
 import asyncio
+import logging
 import subprocess
 from typing import Optional, AsyncIterator, ClassVar
 
@@ -33,6 +34,83 @@ from langchain_experimental.tools.python.tool import PythonREPLTool
 # ── Our LLM router ────────────────────────────────────────────────────────────
 from llm_router import build_llm
 
+logger = logging.getLogger('openclaw.agent')
+
+
+def _to_str(content) -> str:
+    """Coerce LangChain message content to a plain string.
+    Gemini 2.5 models can return content as a list of dicts
+    (e.g. [{'type': 'text', 'text': '...'}]) instead of a string.
+    """
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict) and 'text' in item:
+                parts.append(item['text'])
+            else:
+                parts.append(str(item))
+        return ''.join(parts)
+    return str(content)
+
+
+# ==============================================================
+# Error message cleaner — converts raw LangChain exception blobs
+# into short, human-readable strings shown in the chat UI.
+# ==============================================================
+
+import re as _re
+import json as _json
+
+def _clean_error(exc: Exception) -> tuple[str, str]:
+    """
+    LangChain exceptions often contain the full API response JSON as their
+    string representation.  Returns (human_message, error_type).
+    error_type is one of: rate_limit, auth, forbidden, server, unavailable, unknown
+    """
+    raw = str(exc)
+    error_type = "unknown"
+
+    # 1) Try to find a JSON object embedded in the string and extract "message"
+    try:
+        json_match = _re.search(r"'message':\s*'(\{.*)\'\s*,\s*'status'", raw, _re.DOTALL)
+        if json_match:
+            inner = _json.loads(json_match.group(1))
+            msg = inner.get("error", {}).get("message", "")
+            code = inner.get("error", {}).get("code", "")
+            if code == 429: error_type = "rate_limit"
+            elif code == 401: error_type = "auth"
+            elif code == 403: error_type = "forbidden"
+            elif code >= 500: error_type = "server"
+            if msg:
+                msg = msg.split("For more information")[0].strip().rstrip(".")
+                return (f"[{code}] {msg}" if code else msg, error_type)
+    except Exception:
+        pass
+
+    # 2) Detect common HTTP status codes and map to friendly prefixes
+    for code, friendly, etype in [
+        ("429", "⏳ Rate limit / quota exceeded", "rate_limit"),
+        ("401", "🔑 Invalid API key", "auth"),
+        ("403", "🔒 Access forbidden", "forbidden"),
+        ("500", "🔥 Server error", "server"),
+        ("503", "🔥 Service unavailable", "unavailable"),
+    ]:
+        if f": {code} " in raw or f"code: {code}" in raw or f'"code": {code}' in raw:
+            error_type = etype
+            m = _re.search(r'"message":\s*"([^"]+)"', raw)
+            detail = m.group(1) if m else raw[:120]
+            detail = detail.split("\\n")[0].strip()
+            return (f"{friendly}: {detail}", error_type)
+
+    # 3) Fallback — first non-empty line, cap at 200 chars
+    first_line = raw.split("\n")[0].strip()
+    return (first_line[:200] if first_line else raw[:200], error_type)
+
+
 
 # ==============================================================
 # SafeShellTool: restricted shell (blocks destructive cmds)
@@ -47,6 +125,7 @@ class SafeShellTool(ShellTool):
     IPs, etc. even if it hallucinates or is prompt-injected.
     """
     BLOCKED_PATTERNS: ClassVar[list[str]] = [
+        # Unix
         "rm -rf /", "rm -rf ~", "sudo rm", "sudo dd",
         "dd if=/dev/zero", "dd if=/dev/random",
         "> /dev/sda", "mkfs", "fdisk",
@@ -54,6 +133,9 @@ class SafeShellTool(ShellTool):
         "chmod 777 /", "chown -R root",
         ":(){:|:&};:",           # fork bomb
         "curl | bash", "wget | bash", "curl | sh", "wget | sh",
+        # Windows
+        "format c:", "format d:", "del /s /q", "rd /s /q",
+        "rmdir /s /q", "del /f /s /q",
     ]
 
     def _run(self, commands: str) -> str:
@@ -148,25 +230,73 @@ def run_tests(file_path: str = "", runner: str = "auto") -> str:
 @lc_tool
 def search_code(query: str, directory: str = ".", regex: bool = False) -> str:
     """Search for a string or pattern across all code files in a directory."""
-    flag = "" if regex else "-F"
-    r = subprocess.run(
-        f"grep -rn {flag} '{query}' {directory} "
-        "--include='*.py' --include='*.ts' --include='*.tsx' --include='*.js' "
-        "--include='*.jsx' --include='*.go' --include='*.rs' 2>/dev/null | head -40",
-        shell=True, capture_output=True, text=True, timeout=15,
-    )
-    return r.stdout.strip() or f"No matches for '{query}' in {directory}"
+    from pathlib import Path
+    import re as _search_re
+
+    EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".java", ".cs", ".cpp", ".c", ".rb"}
+    results = []
+    pattern = _search_re.compile(query) if regex else None
+    root = Path(directory).resolve()
+
+    try:
+        for fpath in root.rglob("*"):
+            if not fpath.is_file() or fpath.suffix.lower() not in EXTENSIONS:
+                continue
+            # Skip common non-source directories
+            parts_lower = [p.lower() for p in fpath.parts]
+            if any(skip in parts_lower for skip in ("node_modules", ".git", "venv", "__pycache__", ".venv")):
+                continue
+            try:
+                lines = fpath.read_text(encoding="utf-8", errors="replace").splitlines()
+                for i, line in enumerate(lines, 1):
+                    matched = (pattern.search(line) if pattern else query in line)
+                    if matched:
+                        rel = fpath.relative_to(root)
+                        results.append(f"{rel}:{i}: {line.rstrip()}")
+                        if len(results) >= 40:
+                            return "\n".join(results)
+            except Exception:
+                continue
+    except Exception as e:
+        return f"Search error: {e}"
+
+    return "\n".join(results) if results else f"No matches for '{query}' in {directory}"
 
 
 @lc_tool
 def find_symbol_definition(symbol: str) -> str:
     """Find where a function, class, or variable is defined in the codebase."""
-    r = subprocess.run(
-        f"grep -rn -E '(def|class|function|const|let|var|type|interface)\\s+{symbol}\\b' . "
-        "--include='*.py' --include='*.ts' --include='*.js' 2>/dev/null | head -20",
-        shell=True, capture_output=True, text=True, timeout=10,
+    from pathlib import Path
+    import re as _sym_re
+
+    EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs"}
+    pat = _sym_re.compile(
+        r"(?:def|class|function|const|let|var|type|interface)\s+" + _sym_re.escape(symbol) + r"\b"
     )
-    return r.stdout.strip() or f"No definition found for '{symbol}'"
+    results = []
+    root = Path(".").resolve()
+
+    try:
+        for fpath in root.rglob("*"):
+            if not fpath.is_file() or fpath.suffix.lower() not in EXTENSIONS:
+                continue
+            parts_lower = [p.lower() for p in fpath.parts]
+            if any(skip in parts_lower for skip in ("node_modules", ".git", "venv", "__pycache__", ".venv")):
+                continue
+            try:
+                lines = fpath.read_text(encoding="utf-8", errors="replace").splitlines()
+                for i, line in enumerate(lines, 1):
+                    if pat.search(line):
+                        rel = fpath.relative_to(root)
+                        results.append(f"{rel}:{i}: {line.rstrip()}")
+                        if len(results) >= 20:
+                            return "\n".join(results)
+            except Exception:
+                continue
+    except Exception as e:
+        return f"Search error: {e}"
+
+    return "\n".join(results) if results else f"No definition found for '{symbol}'"
 
 
 @lc_tool
@@ -256,7 +386,7 @@ def _evict_expired_sessions():
         for k in keys_to_remove:
             del _checkpointer.storage[k]
         _session_timestamps.pop(sid, None)
-        print(f"[Session] Evicted expired session: {sid}")
+        logger.info(f"Session evicted: {sid}")
 
 
 def clear_session(session_id: str):
@@ -277,6 +407,7 @@ def build_agent(
     workspace: str = ".",
 ):
     """Build a LangGraph ReAct agent with all tools."""
+    logger.info(f"Building agent: provider={provider}, model={model_id or 'default'}, workspace={workspace}")
     llm = build_llm(provider, model_id)
     tools = get_tools(workspace)
     agent = create_react_agent(
@@ -337,7 +468,7 @@ async def run_streaming(
                     "type": "step",
                     "step": {
                         "type": "tool_result",
-                        "result": str(event.get("data", {}).get("output", ""))[:500],
+                        "result": str(event.get("data", {}).get("output", ""))[:2000],
                         "success": True,
                         "timestamp": int(time.time() * 1000),
                     }
@@ -348,11 +479,15 @@ async def run_streaming(
                 if chunk and hasattr(chunk, "content") and chunk.content:
                     # Only yield content from the final response (not tool-calling steps)
                     if event.get("metadata", {}).get("langgraph_node") == "agent":
-                        final_output += chunk.content
-                        yield {"type": "chunk", "content": chunk.content}
+                        text = _to_str(chunk.content)
+                        final_output += text
+                        yield {"type": "chunk", "content": text}
 
     except Exception as e:
-        yield {"type": "error", "error": str(e)}
+        error_msg, error_type = _clean_error(e)
+        logger.error(f"Streaming run error [{error_type}]: {error_msg}")
+        logger.debug(f"Full exception: {e}", exc_info=True)
+        yield {"type": "error", "error": error_msg, "errorType": error_type}
         return
 
     yield {
@@ -400,7 +535,7 @@ async def run_simple(
         tool_call_count = 0
         for msg in messages:
             if hasattr(msg, "content") and msg.type == "ai" and not getattr(msg, "tool_calls", None):
-                output = msg.content
+                output = _to_str(msg.content)
             if msg.type == "tool":
                 tool_call_count += 1
 
@@ -413,13 +548,17 @@ async def run_simple(
             "error": None,
         }
     except Exception as e:
+        error_msg, error_type = _clean_error(e)
+        logger.error(f"Simple run error [{error_type}]: {error_msg}")
+        logger.debug(f"Full exception: {e}", exc_info=True)
         return {
             "output": "",
             "provider": provider,
             "model": model_id or "",
             "durationMs": int((time.time() - start) * 1000),
             "totalToolCalls": 0,
-            "error": str(e),
+            "error": error_msg,
+            "errorType": error_type,
         }
 
 
@@ -460,7 +599,7 @@ async def run_builtin_tool(
         llm    = build_llm(provider, model_id)
         loop   = asyncio.get_running_loop()
         response = await loop.run_in_executor(None, lambda: llm.invoke(prompt))
-        output = response.content if hasattr(response, "content") else str(response)
+        output = _to_str(response.content) if hasattr(response, "content") else str(response)
         return {
             "output": output,
             "toolName": tool_name,
@@ -470,11 +609,15 @@ async def run_builtin_tool(
             "error": None,
         }
     except Exception as e:
+        error_msg, error_type = _clean_error(e)
+        logger.error(f"Builtin tool error [{error_type}]: {tool_name} — {error_msg}")
+        logger.debug(f"Full exception: {e}", exc_info=True)
         return {
             "output": "",
             "toolName": tool_name,
             "provider": provider,
             "model": model_id or "",
             "durationMs": int((time.time() - start) * 1000),
-            "error": str(e),
+            "error": error_msg,
+            "errorType": error_type,
         }
