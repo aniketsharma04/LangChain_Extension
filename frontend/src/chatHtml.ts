@@ -9,12 +9,12 @@
 import * as vscode from 'vscode';
 
 export function getChatHtml(
-    webview: vscode.Webview,
-    _context: vscode.ExtensionContext,
+  webview: vscode.Webview,
+  _context: vscode.ExtensionContext,
 ): string {
-    const nonce = getNonce();
+  const nonce = getNonce();
 
-    return /* html */ `<!DOCTYPE html>
+  return /* html */ `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -118,6 +118,8 @@ export function getChatHtml(
     color: var(--vscode-descriptionForeground);
     opacity: 0.5;
   }
+  .hidden { display: none !important; }
+  .welcome-footer { margin-top: 10px; font-size: 11px; }
   .context-toggle {
     margin-left: auto;
     display: flex;
@@ -541,7 +543,7 @@ export function getChatHtml(
 <!-- ── Context bar ── -->
 <div class="context-bar" id="contextBar">
   <span class="context-none" id="contextNone">No file open</span>
-  <span class="context-pill" id="contextPill" style="display:none"></span>
+  <span class="context-pill hidden" id="contextPill"></span>
   <label class="context-toggle" title="Toggle file context injection">
     <input type="checkbox" id="contextToggle" checked>
     inject context
@@ -565,7 +567,7 @@ export function getChatHtml(
       <span class="chip">Find Bugs</span>
       <span class="chip">Explain Code</span>
     </div>
-    <p style="margin-top: 10px; font-size: 11px;">
+    <p class="welcome-footer">
       Select code in editor + ask a question for context-aware answers.
     </p>
   </div>
@@ -995,12 +997,12 @@ window.addEventListener('message', (event) => {
 // ── Update the context pill in the bar ────────────────────────────────────
 function updateContextPill(summary) {
     if (!summary) {
-        contextNone.style.display = 'inline';
-        contextPill.style.display = 'none';
+        contextNone.classList.remove('hidden');
+        contextPill.classList.add('hidden');
         return;
     }
-    contextNone.style.display = 'none';
-    contextPill.style.display = 'flex';
+    contextNone.classList.add('hidden');
+    contextPill.classList.remove('hidden');
     contextPill.textContent = summary.label;
     contextPill.className = 'context-pill' + (summary.captureMode === 'selection' ? ' selection' : '');
     contextPill.title = \`\${summary.lineCount} lines · \${summary.captureMode}\${summary.truncated ? ' · truncated' : ''}\`;
@@ -1038,6 +1040,6 @@ vscode.postMessage({ type: 'getProviders' });
 }
 
 function getNonce(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    return Array.from({ length: 32 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from({ length: 32 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }

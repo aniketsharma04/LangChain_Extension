@@ -31,7 +31,7 @@ export class OpenClawChatViewProvider implements vscode.WebviewViewProvider {
     constructor(
         private readonly context: vscode.ExtensionContext,
         private readonly backendClient: BackendClient,
-    ) {}
+    ) { }
 
     // Called by extension.ts after both providers are constructed
     public setToolsProvider(tp: ToolsProvider): void {
@@ -123,9 +123,11 @@ export class OpenClawChatViewProvider implements vscode.WebviewViewProvider {
 
         const config = vscode.workspace.getConfiguration('openclaw');
         const resolvedProvider = provider ?? config.get<string>('defaultProvider', 'openai');
-        const resolvedModel    = model    ?? config.get<string>('defaultModel', '');
-        const useStream        = config.get<boolean>('streamResponses', true);
-        const workspacePath    = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        const resolvedModel = model ?? config.get<string>('defaultModel', '');
+        const useStream = config.get<boolean>('streamResponses', true);
+        const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+        console.log(`[OpenClaw] User message: provider=${resolvedProvider}, model=${resolvedModel || 'default'}, stream=${useStream}, contextEnabled=${contextEnabled !== false}`);
 
         // ── Capture file context ───────────────────────────────────────────────
         // contextEnabled comes from the UI toggle (defaults to true)
@@ -136,6 +138,7 @@ export class OpenClawChatViewProvider implements vscode.WebviewViewProvider {
             const captured = ContextManager.capture();
             if (captured) {
                 fileContext = captured.context;
+                console.log('[OpenClaw] File context captured:', captured.summary?.label || 'unknown');
                 // Tell the webview to show which file was sent
                 this._postToWebview({ type: 'contextAttached', summary: captured.summary });
             }
@@ -151,6 +154,7 @@ export class OpenClawChatViewProvider implements vscode.WebviewViewProvider {
             }
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : String(err);
+            console.error('[OpenClaw] Chat handling error:', err);
             this._postToWebview({ type: 'error', message: `Backend error: ${msg}` });
         }
     }
@@ -246,7 +250,8 @@ export class OpenClawChatViewProvider implements vscode.WebviewViewProvider {
         try {
             const providers = await this.backendClient.getProviders();
             this._postToWebview({ type: 'providers', providers });
-        } catch {
+        } catch (err) {
+            console.error('[OpenClaw] Failed to fetch providers from backend:', err);
             this._postToWebview({ type: 'providers', providers: [] });
         }
     }
@@ -256,7 +261,8 @@ export class OpenClawChatViewProvider implements vscode.WebviewViewProvider {
         try {
             const tools = await this.backendClient.getTools();
             this._postToWebview({ type: 'tools', builtin: tools.builtin, custom: tools.custom });
-        } catch {
+        } catch (err) {
+            console.error('[OpenClaw] Failed to fetch tools from backend:', err);
             this._postToWebview({ type: 'tools', builtin: [], custom: [] });
         }
     }
@@ -285,7 +291,7 @@ export class OpenClawChatViewProvider implements vscode.WebviewViewProvider {
     public newSession(): void {
         const oldSessionId = this._sessionId;
         this._sessionId = generateSessionId();
-        this.backendClient.clearSession(oldSessionId).catch(() => {});
+        this.backendClient.clearSession(oldSessionId).catch(() => { });
         this._postToWebview({ type: 'newSession', sessionId: this._sessionId });
         vscode.window.setStatusBarMessage('$(add) OpenClaw: New session started', 2000);
     }

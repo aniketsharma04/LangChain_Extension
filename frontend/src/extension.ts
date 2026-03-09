@@ -17,12 +17,18 @@ export function activate(context: vscode.ExtensionContext) {
 
     const config = vscode.workspace.getConfiguration('openclaw');
     const backendUrl = config.get<string>('backendUrl', 'http://localhost:3579');
+    console.log('[OpenClaw] Backend URL:', backendUrl);
+    console.log('[OpenClaw] Config:', {
+        defaultProvider: config.get<string>('defaultProvider', 'openai'),
+        defaultModel: config.get<string>('defaultModel', ''),
+        streamResponses: config.get<boolean>('streamResponses', true),
+    });
 
     // ── Core clients ──────────────────────────────────────────────────────────
     const backendClient = new BackendClient(backendUrl);
 
     // ── Sidebar webview + tools ───────────────────────────────────────────────
-    const chatProvider  = new OpenClawChatViewProvider(context, backendClient);
+    const chatProvider = new OpenClawChatViewProvider(context, backendClient);
     const toolsProvider = new ToolsProvider(backendClient, chatProvider);
     chatProvider.setToolsProvider(toolsProvider); // wire up for runCustomTool messages
 
@@ -34,8 +40,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // ── Chat commands ─────────────────────────────────────────────────────────
     const chatCommands = [
-        vscode.commands.registerCommand('openclaw.openChat',   () => vscode.commands.executeCommand('openclawChatView.focus')),
-        vscode.commands.registerCommand('openclaw.clearChat',  () => chatProvider.clearChat()),
+        vscode.commands.registerCommand('openclaw.openChat', () => vscode.commands.executeCommand('openclawChatView.focus')),
+        vscode.commands.registerCommand('openclaw.clearChat', () => chatProvider.clearChat()),
         vscode.commands.registerCommand('openclaw.newSession', () => chatProvider.newSession()),
     ];
 
@@ -76,12 +82,15 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(statusBar);
 
     // ── Health check ──────────────────────────────────────────────────────────
+    console.log('[OpenClaw] Running health check...');
     backendClient.healthCheck().then(ok => {
         if (ok) {
             statusBar.text = '$(check) OpenClaw';
+            console.log('[OpenClaw] Backend health check passed ✅');
             vscode.window.setStatusBarMessage('$(check) OpenClaw backend connected', 3000);
         } else {
             statusBar.text = '$(warning) OpenClaw';
+            console.error('[OpenClaw] Backend health check FAILED ❌ — cannot reach', backendUrl);
             vscode.window.showWarningMessage(
                 `OpenClaw: Cannot reach backend at ${backendUrl}. Start the Python server first.`,
                 'Dismiss'
@@ -92,4 +101,4 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('[OpenClaw] Extension activated.');
 }
 
-export function deactivate() {}
+export function deactivate() { }
