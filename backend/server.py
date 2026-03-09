@@ -13,6 +13,8 @@
 import os
 import json
 import asyncio
+import logging
+import traceback
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -23,6 +25,14 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ── Logging setup ─────────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%H:%M:%S',
+)
+logger = logging.getLogger('openclaw')
 
 # ── Our modules ───────────────────────────────────────────────────────────────
 from llm_router import (
@@ -98,11 +108,11 @@ async def lifespan(app: FastAPI):
     # Startup
     init_providers()
     custom_tool_manager.watch_for_changes(
-        lambda: print("[Server] Custom tools reloaded")
+        lambda: logger.info("Custom tools reloaded")
     )
-    print(f"\n🦾 OpenClaw Python Backend running on http://localhost:{PORT}")
-    print(f"   Framework: FastAPI + LangChain + LiteLLM")
-    print(f"   Custom tools dir: {custom_tool_manager.tools_dir}\n")
+    logger.info(f"🦾 OpenClaw Python Backend running on http://localhost:{PORT}")
+    logger.info(f"   Framework: FastAPI + LangChain + LiteLLM")
+    logger.info(f"   Custom tools dir: {custom_tool_manager.tools_dir}")
     yield
     # Shutdown (nothing needed)
 
@@ -289,15 +299,24 @@ async def execute(body: ExecuteRequest):
 async def chat(body: ChatRequest):
     """REPLACES: POST /api/chat in server.ts"""
     provider = body.provider or os.getenv("DEFAULT_PROVIDER", "openai")
+    logger.info(f"POST /api/chat | provider={provider}, model={body.model or 'default'}, session={body.sessionId}")
     message = inject_file_context(body.message, body.context)
-    result = await run_simple(
-        message=message,
-        provider=provider,
-        model_id=body.model,
-        workspace=body.workspacePath or ".",
-        session_id=body.sessionId,
-    )
-    return result
+    try:
+        result = await run_simple(
+            message=message,
+            provider=provider,
+            model_id=body.model,
+            workspace=body.workspacePath or ".",
+            session_id=body.sessionId,
+        )
+        if result.get("error"):
+            logger.error(f"Chat error: {result['error']}")
+        else:
+            logger.info(f"Chat OK: provider={result.get('provider')}, duration={result.get('durationMs')}ms")
+        return result
+    except Exception as e:
+        logger.exception(f"Chat endpoint crashed: {e}")
+        raise
 
 
 # ==============================================================
@@ -318,6 +337,7 @@ async def chat_stream(body: ChatRequest):
     """
     provider = body.provider or os.getenv("DEFAULT_PROVIDER", "openai")
     message  = inject_file_context(body.message, body.context)
+    logger.info(f"POST /api/chat/stream | provider={provider}, model={body.model or 'default'}, session={body.sessionId}")
 
     async def event_generator():
         try:
@@ -328,10 +348,13 @@ async def chat_stream(body: ChatRequest):
                 workspace=body.workspacePath or ".",
                 session_id=body.sessionId,
             ):
+                if event.get("type") == "error":
+                    logger.error(f"Stream error event: {event.get('error')}")
                 yield f"data: {json.dumps(event)}\n\n"
         except asyncio.CancelledError:
-            pass
+            logger.info("Stream cancelled by client")
         except Exception as e:
+            logger.exception(f"Stream event generator error: {e}")
             yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n"
 
     return StreamingResponse(
@@ -478,7 +501,7 @@ async def set_permissions(session_id: str, body: dict):
     # Permissions are enforced via LangChain's tool allow/block lists
     # For now, store the level and apply on next agent build
     level = body.get("level", "standard")
-    print(f"[Permissions] Session {session_id}: level={level}")
+    logger.info(f"Permissions set: session={session_id}, level={level}")
     return {"success": True, "message": f'Permission level "{level}" set'}
 
 
