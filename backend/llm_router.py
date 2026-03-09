@@ -16,8 +16,11 @@
 # ==============================================================
 
 import os
+import logging
 from typing import Optional
 from dataclasses import dataclass, field
+
+logger = logging.getLogger('openclaw.router')
 
 # ── LangChain provider wrappers (pip install langchain-openai etc.) ──────────
 from langchain_openai import ChatOpenAI
@@ -54,24 +57,33 @@ def init_providers():
             default_model="gpt-4o",
             models=["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "o3-mini"],
         )
+        logger.info("Provider registered: openai (cloud)")
+    else:
+        logger.info("Provider skipped: openai (no OPENAI_API_KEY)")
 
-    if os.getenv("GEMINI_API_KEY"):
+    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if gemini_key:
         _providers["gemini"] = ProviderConfig(
             name="gemini",
             provider_type="cloud",
-            api_key=os.getenv("GEMINI_API_KEY"),
-            default_model="gemini-2.0-flash",
-            models=["gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
+            api_key=gemini_key,
+            default_model="gemini-2.5-flash",
+            models=["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"],
         )
+        logger.info(f"Provider registered: gemini (cloud, key={gemini_key[:8]}...)")
+    else:
+        logger.warning("Provider skipped: gemini (no GEMINI_API_KEY or GOOGLE_API_KEY)")
+
 
     # Ollama — always registered, no key needed
     _providers["ollama"] = ProviderConfig(
         name="ollama",
         provider_type="local",
         base_url=os.getenv("OLLAMA_URL", "http://localhost:11434"),
-        default_model="llama3.2",
-        models=[],  # populated dynamically when probed
+        default_model="llama3.1:8b",
+        models=["llama3.1:8b"],  # default model; more discovered via probe
     )
+    logger.info(f"Provider registered: ollama (local, url={os.getenv('OLLAMA_URL', 'http://localhost:11434')})")
 
     if os.getenv("VLLM_URL"):
         _providers["vllm"] = ProviderConfig(
@@ -80,6 +92,7 @@ def init_providers():
             base_url=os.getenv("VLLM_URL"),
             models=[],
         )
+        logger.info(f"Provider registered: vllm (local, url={os.getenv('VLLM_URL')})")
 
 
 def update_provider(name: str, api_key: Optional[str] = None,
@@ -124,6 +137,8 @@ def build_llm(provider: str, model_id: Optional[str] = None, temperature: float 
     LangChain and LiteLLM handle all of that.
     """
     cfg = _providers.get(provider)
+    resolved_model = model_id or (cfg.default_model if cfg else None)
+    logger.info(f"Building LLM: provider={provider}, model={resolved_model}")
 
     # ── OpenAI ────────────────────────────────────────────────────────────────
     if provider == "openai":
@@ -136,17 +151,20 @@ def build_llm(provider: str, model_id: Optional[str] = None, temperature: float 
 
     # ── Gemini ────────────────────────────────────────────────────────────────
     elif provider == "gemini":
+        api_key = (cfg.api_key if cfg else None) or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "")
         return ChatGoogleGenerativeAI(
-            model=model_id or (cfg.default_model if cfg else "gemini-2.0-flash"),
-            google_api_key=cfg.api_key if cfg else os.getenv("GEMINI_API_KEY", ""),
+            model=model_id or (cfg.default_model if cfg else "gemini-2.5-flash"),
+            google_api_key=api_key,
             temperature=temperature,
+            max_retries=5,           # auto-retry 429s with exponential backoff
+            timeout=60,              # generous timeout for retried requests
         )
 
     # ── Ollama (local) ────────────────────────────────────────────────────────
     elif provider == "ollama":
         base = cfg.base_url if cfg else os.getenv("OLLAMA_URL", "http://localhost:11434")
         return ChatOllama(
-            model=model_id or (cfg.default_model if cfg else "llama3.2"),
+            model=model_id or (cfg.default_model if cfg else "llama3.1:8b"),
             base_url=base,
             temperature=temperature,
         )
