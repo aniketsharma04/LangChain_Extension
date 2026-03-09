@@ -58,6 +58,29 @@ def _to_str(content) -> str:
 
 
 # ==============================================================
+# Rate-limit pacer — prevents burning through free-tier RPM
+# Adds a configurable delay between consecutive LLM API calls.
+# ==============================================================
+
+class RateLimitPacer(BaseCallbackHandler):
+    """Inserts a delay between LLM calls to stay under RPM limits."""
+
+    def __init__(self, delay_seconds: float = 3.0):
+        super().__init__()
+        self._delay = delay_seconds
+        self._last_call = 0.0
+
+    def on_llm_start(self, *args, **kwargs):
+        now = time.time()
+        elapsed = now - self._last_call
+        if self._last_call > 0 and elapsed < self._delay:
+            wait = self._delay - elapsed
+            logger.info(f"Rate-limit pacer: waiting {wait:.1f}s before next LLM call")
+            time.sleep(wait)
+        self._last_call = time.time()
+
+
+# ==============================================================
 # Error message cleaner — converts raw LangChain exception blobs
 # into short, human-readable strings shown in the chat UI.
 # ==============================================================
@@ -409,6 +432,11 @@ def build_agent(
     """Build a LangGraph ReAct agent with all tools."""
     logger.info(f"Building agent: provider={provider}, model={model_id or 'default'}, workspace={workspace}")
     llm = build_llm(provider, model_id)
+
+    # Attach rate-limit pacer to prevent free-tier RPM exhaustion
+    pacer = RateLimitPacer(delay_seconds=3.0)
+    llm.callbacks = [pacer]
+
     tools = get_tools(workspace)
     agent = create_react_agent(
         llm,

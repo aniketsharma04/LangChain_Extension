@@ -1,0 +1,8 @@
+=== DIAGNOSTIC ===
+GEMINI_API_KEY set: True
+GOOGLE_API_KEY set: True
+langchain-google-genai IMPORT ERROR: module 'langchain_google_genai' has no attribute '__version__'
+gemini-2.0-flash: FAILED
+  Error: Error calling model 'gemini-2.0-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To mon
+gemini-1.5-flash: FAILED
+  Error: Error calling model 'gemini-1.5-flash' (NOT_FOUND): 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.', 'status': 'N
