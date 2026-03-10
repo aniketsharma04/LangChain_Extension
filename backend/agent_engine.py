@@ -381,6 +381,45 @@ def find_file(pattern: str, directory: str = ".") -> str:
 
 
 @lc_tool
+def get_project_summary(directory: str = ".") -> str:
+    """Summarizes the project's tech stack by looking for config files.
+    Identifies if it's a React, Python, Node.js, or other type of project."""
+    from pathlib import Path
+    root = Path(directory if directory != "." else _current_workspace).resolve()
+
+    indicators = {
+        "package.json": "Node.js/NPM project",
+        "tsconfig.json": "TypeScript project",
+        "requirements.txt": "Python project (pip)",
+        "pyproject.toml": "Python project (poetry/flit)",
+        "venv": "Python virtual environment",
+        ".venv": "Python virtual environment",
+        "go.mod": "Go project",
+        "Cargo.toml": "Cargo (Rust) project",
+        "tailwind.config.js": "Tailwind CSS detected",
+        "vite.config.ts": "Vite project detected",
+        "vite.config.js": "Vite project detected",
+        "next.config.js": "Next.js project detected",
+        "next.config.mjs": "Next.js project detected",
+        "Makefile": "C/C++ or build-script project",
+        "CMakeLists.txt": "CMake (C/C++) project",
+        "SOLUTION.sln": "Visual Studio Solution",
+    }
+
+    found = []
+    for file, desc in indicators.items():
+        if (root / file).exists():
+            found.append(f"- {file}: {desc}")
+
+    # Also check for major source folders
+    for folder in ["src", "backend", "frontend", "app"]:
+        if (root / folder).is_dir():
+            found.append(f"- {folder}/ directory exists")
+
+    return "Project tech stack indicators:\n" + "\n".join(found) if found else "No major tech stack indicators found."
+
+
+@lc_tool
 def apply_patch(file_path: str, patch_content: str) -> str:
     """Apply a unified diff patch to a file safely."""
     import tempfile
@@ -483,7 +522,7 @@ def get_tools(workspace: str = ".") -> list:
         PythonREPLTool(),
         git_status, git_diff, git_log, git_suggest_commit,
         run_linter, run_tests,
-        search_code, find_symbol_definition, find_file,
+        search_code, find_symbol_definition, find_file, get_project_summary,
         apply_patch,
         _build_web_search_tool(),
     ]
@@ -521,7 +560,9 @@ You have full access to the developer's workspace. Use your tools proactively.
 5. When the user asks about current events, news, people, or anything outside the codebase, use **web_search** proactively
 6. Cite sources with URLs when presenting web search results
 7. When asked to find or locate a file, use **find_file** first — it is faster and more accurate than listing directories one by one
-8. When asked to search for text content, use **search_code** — it searches ALL file types including CSS, HTML, JSON, Markdown, and config files"""
+8. When asked to search for text content, use **search_code** — it searches ALL file types including CSS, HTML, JSON, Markdown, and config files
+9. **File Extensions**: ALWAYS use appropriate file extensions (e.g., `.py` for Python, `.ts`/`.tsx` for TypeScript, `.c` for C, `.cpp` for C++, `.md` for Markdown, `.json` for JSON). NEVER create extensionless files for code or data.
+10. **Tech Stack Consistency**: Before creating new files, check the project's tech stack using `get_project_summary` or by looking at existing files. Match the project's language and style (e.g., use C if the project is C-based)."""
 
 
 # ==============================================================
