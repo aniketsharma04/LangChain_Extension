@@ -36,6 +36,10 @@ from llm_router import build_llm
 
 logger = logging.getLogger('openclaw.agent')
 
+# Module-level workspace — set by get_tools() so custom @lc_tool functions
+# automatically resolve "." to the user's opened project, not the backend CWD.
+_current_workspace: str = "."
+
 
 def _to_str(content) -> str:
     """Coerce LangChain message content to a plain string.
@@ -252,14 +256,26 @@ def run_tests(file_path: str = "", runner: str = "auto") -> str:
 
 @lc_tool
 def search_code(query: str, directory: str = ".", regex: bool = False) -> str:
-    """Search for a string or pattern across all code files in a directory."""
+    """Search for a string or pattern across all project files in a directory.
+    Searches code, styles, config, documentation, and markup files."""
     from pathlib import Path
     import re as _search_re
 
-    EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".java", ".cs", ".cpp", ".c", ".rb"}
+    EXTENSIONS = {
+        # Code
+        ".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".java", ".cs", ".cpp", ".c", ".rb",
+        # Web / styles
+        ".html", ".htm", ".css", ".scss", ".sass", ".less", ".svg",
+        # Config / data
+        ".json", ".yaml", ".yml", ".toml", ".xml", ".env", ".ini", ".cfg",
+        # Documentation
+        ".md", ".txt", ".rst",
+        # Shell / misc
+        ".sh", ".bat", ".ps1", ".dockerfile",
+    }
     results = []
     pattern = _search_re.compile(query) if regex else None
-    root = Path(directory).resolve()
+    root = Path(directory if directory != "." else _current_workspace).resolve()
 
     try:
         for fpath in root.rglob("*"):
@@ -267,7 +283,7 @@ def search_code(query: str, directory: str = ".", regex: bool = False) -> str:
                 continue
             # Skip common non-source directories
             parts_lower = [p.lower() for p in fpath.parts]
-            if any(skip in parts_lower for skip in ("node_modules", ".git", "venv", "__pycache__", ".venv")):
+            if any(skip in parts_lower for skip in ("node_modules", ".git", "venv", "__pycache__", ".venv", "build", "dist")):
                 continue
             try:
                 lines = fpath.read_text(encoding="utf-8", errors="replace").splitlines()
@@ -287,24 +303,28 @@ def search_code(query: str, directory: str = ".", regex: bool = False) -> str:
 
 
 @lc_tool
-def find_symbol_definition(symbol: str) -> str:
+def find_symbol_definition(symbol: str, directory: str = ".") -> str:
     """Find where a function, class, or variable is defined in the codebase."""
     from pathlib import Path
     import re as _sym_re
 
-    EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs"}
+    EXTENSIONS = {
+        ".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs",
+        ".java", ".cs", ".cpp", ".c", ".rb",
+        ".html", ".css", ".scss",
+    }
     pat = _sym_re.compile(
         r"(?:def|class|function|const|let|var|type|interface)\s+" + _sym_re.escape(symbol) + r"\b"
     )
     results = []
-    root = Path(".").resolve()
+    root = Path(directory if directory != "." else _current_workspace).resolve()
 
     try:
         for fpath in root.rglob("*"):
             if not fpath.is_file() or fpath.suffix.lower() not in EXTENSIONS:
                 continue
             parts_lower = [p.lower() for p in fpath.parts]
-            if any(skip in parts_lower for skip in ("node_modules", ".git", "venv", "__pycache__", ".venv")):
+            if any(skip in parts_lower for skip in ("node_modules", ".git", "venv", "__pycache__", ".venv", "build", "dist")):
                 continue
             try:
                 lines = fpath.read_text(encoding="utf-8", errors="replace").splitlines()
@@ -320,6 +340,44 @@ def find_symbol_definition(symbol: str) -> str:
         return f"Search error: {e}"
 
     return "\n".join(results) if results else f"No definition found for '{symbol}'"
+
+
+@lc_tool
+def find_file(pattern: str, directory: str = ".") -> str:
+    """Find files by name or glob pattern in the project directory.
+    Use this to locate a file by its name. Examples:
+      find_file('App.css')       — find a specific file
+      find_file('*.test.js')     — find all test files
+      find_file('*.py')          — find all Python files
+      find_file('package.json')  — find package.json files
+    """
+    from pathlib import Path
+
+    root = Path(directory if directory != "." else _current_workspace).resolve()
+    results = []
+
+    try:
+        for fpath in root.rglob(pattern):
+            if not fpath.is_file():
+                continue
+            parts_lower = [p.lower() for p in fpath.parts]
+            if any(skip in parts_lower for skip in (
+                "node_modules", ".git", "venv", "__pycache__", ".venv",
+                "build", "dist", ".next", ".cache",
+            )):
+                continue
+            try:
+                rel = fpath.relative_to(root)
+                size = fpath.stat().st_size
+                results.append(f"{rel}  ({size} bytes)")
+            except Exception:
+                continue
+            if len(results) >= 30:
+                break
+    except Exception as e:
+        return f"Search error: {e}"
+
+    return "\n".join(results) if results else f"No files matching '{pattern}' found in {directory}"
 
 
 @lc_tool
@@ -411,6 +469,9 @@ def _build_web_search_tool():
 # ==============================================================
 
 def get_tools(workspace: str = ".") -> list:
+    global _current_workspace
+    _current_workspace = workspace
+    logger.info(f"Tools workspace set to: {workspace}")
     tools = [
         ReadFileTool(root_dir=workspace),
         WriteFileTool(root_dir=workspace),
@@ -422,7 +483,7 @@ def get_tools(workspace: str = ".") -> list:
         PythonREPLTool(),
         git_status, git_diff, git_log, git_suggest_commit,
         run_linter, run_tests,
-        search_code, find_symbol_definition,
+        search_code, find_symbol_definition, find_file,
         apply_patch,
         _build_web_search_tool(),
     ]
@@ -446,7 +507,8 @@ You have full access to the developer's workspace. Use your tools proactively.
 - **git_status / git_diff / git_log / git_suggest_commit** — git operations
 - **run_linter** — lint a file (pylint / eslint / tsc / mypy)
 - **run_tests** — run tests (pytest / jest / vitest)
-- **search_code** — grep across the codebase
+- **search_code** — grep across all project files (code, CSS, HTML, JSON, config, docs)
+- **find_file** — find files by name or glob pattern (e.g. 'App.css', '*.test.js')
 - **find_symbol_definition** — find where a function/class is defined
 - **apply_patch** — apply a unified diff patch to a file
 - **web_search** — search the web for current news, facts, people, events, real-time data
@@ -457,7 +519,9 @@ You have full access to the developer's workspace. Use your tools proactively.
 3. Show **git diff** after making file changes
 4. For code blocks, always include the language identifier in markdown
 5. When the user asks about current events, news, people, or anything outside the codebase, use **web_search** proactively
-6. Cite sources with URLs when presenting web search results"""
+6. Cite sources with URLs when presenting web search results
+7. When asked to find or locate a file, use **find_file** first — it is faster and more accurate than listing directories one by one
+8. When asked to search for text content, use **search_code** — it searches ALL file types including CSS, HTML, JSON, Markdown, and config files"""
 
 
 # ==============================================================
