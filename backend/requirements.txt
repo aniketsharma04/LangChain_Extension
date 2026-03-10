@@ -29,6 +29,10 @@ python-multipart>=0.0.9
 pyyaml>=6.0.1
 watchfiles>=0.21.0
 
+# ── Web search (replaces: not present in Node.js version) ─────
+ddgs>=9.11.0                     # free web search (DuckDuckGo), no API key needed
+tavily-python>=0.3.0             # optional: better results if TAVILY_API_KEY is set
+
 # ── Utilities ─────────────────────────────────────────────────
 python-dotenv>=1.0.0
 pydantic>=2.7.0

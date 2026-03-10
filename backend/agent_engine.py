@@ -342,11 +342,76 @@ def apply_patch(file_path: str, patch_content: str) -> str:
 
 
 # ==============================================================
+# Web search tool — DuckDuckGo (free) or Tavily (if key set)
+# ==============================================================
+
+def _build_web_search_tool():
+    """
+    Returns a web search LangChain tool.
+    Uses Tavily if TAVILY_API_KEY is set (better quality),
+    otherwise falls back to DuckDuckGo (free, no key needed).
+    """
+    tavily_key = os.getenv("TAVILY_API_KEY")
+    if tavily_key:
+        try:
+            from langchain_community.tools.tavily_search import TavilySearchResults
+            logger.info("Web search: using Tavily (API key detected)")
+            return TavilySearchResults(
+                max_results=5,
+                search_depth="advanced",
+                name="web_search",
+                description=(
+                    "Search the web for current information, news, facts, "
+                    "people, events, or any real-time data. Returns top results "
+                    "with titles, snippets, and URLs. Use this whenever the user "
+                    "asks about recent events, live data, or anything outside "
+                    "the local codebase."
+                ),
+            )
+        except Exception as e:
+            logger.warning(f"Tavily import failed, falling back to DuckDuckGo: {e}")
+
+    # Fallback: DuckDuckGo (free, no API key)
+    @lc_tool
+    def web_search(query: str, max_results: int = 5) -> str:
+        """Search the web for current information, news, facts, people, events,
+        or any real-time data. Returns top results with titles, snippets, and URLs.
+        Use this whenever the user asks about recent events, live data, or anything
+        outside the local codebase."""
+        try:
+            from ddgs import DDGS
+        except ImportError:
+            return ("\u274c ddgs package not installed. "
+                    "Run: pip install ddgs")
+
+        try:
+            with DDGS() as ddgs:
+                results = list(ddgs.text(query, max_results=max_results))
+
+            if not results:
+                return f"No web results found for: {query}"
+
+            formatted = []
+            for i, r in enumerate(results, 1):
+                title = r.get("title", "No title")
+                body = r.get("body", r.get("snippet", "No snippet"))
+                href = r.get("href", r.get("link", ""))
+                formatted.append(f"{i}. **{title}**\n   {body}\n   URL: {href}")
+
+            return f"Web search results for '{query}':\n\n" + "\n\n".join(formatted)
+        except Exception as e:
+            return f"Web search error: {e}"
+
+    logger.info("Web search: using DuckDuckGo (free, no API key)")
+    return web_search
+
+
+# ==============================================================
 # Tool catalogue
 # ==============================================================
 
 def get_tools(workspace: str = ".") -> list:
-    return [
+    tools = [
         ReadFileTool(root_dir=workspace),
         WriteFileTool(root_dir=workspace),
         ListDirectoryTool(root_dir=workspace),
@@ -359,7 +424,9 @@ def get_tools(workspace: str = ".") -> list:
         run_linter, run_tests,
         search_code, find_symbol_definition,
         apply_patch,
+        _build_web_search_tool(),
     ]
+    return tools
 
 
 # ==============================================================
@@ -382,12 +449,15 @@ You have full access to the developer's workspace. Use your tools proactively.
 - **search_code** — grep across the codebase
 - **find_symbol_definition** — find where a function/class is defined
 - **apply_patch** — apply a unified diff patch to a file
+- **web_search** — search the web for current news, facts, people, events, real-time data
 
 ## Rules
 1. Always **read before editing** — use ReadFileTool first
 2. **Verify after changes** — run_linter or run_tests after edits
 3. Show **git diff** after making file changes
-4. For code blocks, always include the language identifier in markdown"""
+4. For code blocks, always include the language identifier in markdown
+5. When the user asks about current events, news, people, or anything outside the codebase, use **web_search** proactively
+6. Cite sources with URLs when presenting web search results"""
 
 
 # ==============================================================
