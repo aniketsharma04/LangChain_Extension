@@ -27,6 +27,8 @@ pip install -r requirements.txt
 # Configure — add at least one API key
 cp .env.example .env
 # Open .env and set OPENAI_API_KEY=sk-...  (or GEMINI_API_KEY for Gemini)
+# Optional but recommended for live/current-event answers:
+# set TAVILY_API_KEY=tvly-...  (free tier: 1000 searches/month)
 # For local models: make sure Ollama is running (ollama pull llama3.2)
 
 # Start the server
