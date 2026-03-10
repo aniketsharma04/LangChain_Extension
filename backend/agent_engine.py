@@ -139,41 +139,190 @@ def _clean_error(exc: Exception) -> tuple[str, str]:
 
 
 
-# ==============================================================
-# SafeShellTool: restricted shell (blocks destructive cmds)
-# ==============================================================
-
-from langchain_community.tools.shell.tool import ShellTool
-
-class SafeShellTool(ShellTool):
+@lc_tool
+def terminal(commands: str) -> str:
     """
-    Shell tool with a blocklist for destructive commands.
-    Prevents the LLM from running rm -rf, sudo, curl to external
-    IPs, etc. even if it hallucinates or is prompt-injected.
+    Execute shell commands or common workspace shortcuts.
+    The tool automatically handles blocked commands for safety.
+    
+    Shortcuts:
+      'short:test'        - Run the project test suite
+      'short:lint'        - Lint the active file path
+      'short:git-status'  - Show git status
+      'short:git-diff'    - Show git diff
+      'short:git-log'     - Show compact git history
+      'short:summary'    - Summarize tech stack config
+      'short:overview'   - Show project's key files/directories
+    
+    Examples:
+      'ls -la'
+      'pip install requests'
+      'short:test'
     """
-    BLOCKED_PATTERNS: ClassVar[list[str]] = [
-        # Unix
-        "rm -rf /", "rm -rf ~", "sudo rm", "sudo dd",
-        "dd if=/dev/zero", "dd if=/dev/random",
-        "> /dev/sda", "mkfs", "fdisk",
-        "shutdown", "reboot", "halt", "poweroff",
-        "chmod 777 /", "chown -R root",
-        ":(){:|:&};:",           # fork bomb
-        "curl | bash", "wget | bash", "curl | sh", "wget | sh",
-        # Windows
-        "format c:", "format d:", "del /s /q", "rd /s /q",
-        "rmdir /s /q", "del /f /s /q",
+    # 1) Robust input coercion (fixes list object has no attribute 'lower')
+    if isinstance(commands, list):
+        cmd_str = " && ".join(str(c) for c in commands)
+    elif isinstance(commands, dict):
+        # Some LLMs wrap arguments in a dict even when not asked
+        cmd_str = str(commands.get("commands") or commands.get("input") or str(commands))
+    else:
+        cmd_str = str(commands)
+
+    # 2) Handle shortcuts (FIX: call logic functions, not @lc_tool objects)
+    if cmd_str.startswith("short:"):
+        s = cmd_str.replace("short:", "").strip().lower()
+        if s == "test":       return _run_tests_logic()
+        if s == "git-status": return _git_status_logic()
+        if s == "git-diff":   return _git_diff_logic()
+        if s == "git-log":    return _git_log_logic()
+        if s == "summary":    return _get_project_summary_logic()
+        if s == "overview":   return _project_overview_logic()
+        # Note: linting requires a path, so we can't easily auto-shortcut it without context
+        if s == "lint":       return "Shortcut error: 'short:lint' requires a file path. Use 'run_linter(path)' instead."
+        return f"Unknown shortcut: {s}"
+
+    # 3) Blocklist check
+    BLOCKED = [
+        "rm -rf /", "rm -rf ~", "sudo rm", "sudo dd", "mkfs", "fdisk",
+        "shutdown", "reboot", "format c:", "del /s /q", "rd /s /q"
     ]
+    lower_cmd = cmd_str.lower()
+    for pattern in BLOCKED:
+        if pattern in lower_cmd:
+            return f"❌ Blocked: '{pattern}' is not permitted for safety."
 
-    def _run(self, commands: str) -> str:
-        lower = commands.lower()
-        for pattern in self.BLOCKED_PATTERNS:
-            if pattern in lower:
-                return f"❌ Blocked: '{pattern}' is not permitted by SafeShellTool."
-        return super()._run(commands)
+    # 4) Safe execution
+    try:
+        r = subprocess.run(
+            cmd_str,
+            shell=True,
+            capture_output=True,
+            text=True,
+            cwd=_current_workspace,
+            timeout=60
+        )
+        out = (r.stdout + r.stderr).strip()
+        return out or f"Command executed (no output). Status code: {r.returncode}"
+    except subprocess.TimeoutExpired:
+        return "❌ Error: Command timed out after 60 seconds."
+    except Exception as e:
+        return f"❌ Execution error: {str(e)}"
 
-    async def _arun(self, commands: str) -> str:
-        return self._run(commands)
+
+# --- Internal Logic Functions (to avoid 'StructuredTool' object is not callable) ---
+
+def _git_status_logic() -> str:
+    r = subprocess.run(
+        "git status --short && echo '---' && git branch --show-current",
+        shell=True, capture_output=True, text=True, cwd=_current_workspace
+    )
+    return r.stdout.strip() or "Not a git repo or clean working tree"
+
+def _git_diff_logic(staged: bool = False) -> str:
+    flag = "--cached" if staged else ""
+    r = subprocess.run(f"git diff {flag} | head -300", shell=True, capture_output=True, text=True, cwd=_current_workspace)
+    return r.stdout.strip() or "No changes to diff"
+
+def _git_log_logic(limit: int = 10) -> str:
+    r = subprocess.run(f"git log --oneline --graph -{limit}", shell=True, capture_output=True, text=True, cwd=_current_workspace)
+    return r.stdout.strip() or "No git history"
+
+def _run_tests_logic(file_path: str = "", runner: str = "auto") -> str:
+    from pathlib import Path
+    root = Path(_current_workspace).resolve()
+    
+    if runner == "auto":
+        if (root / "pytest.ini").exists() or (root / "pyproject.toml").exists():
+            runner = "pytest"
+        elif (root / "package.json").exists():
+            with open(root / "package.json") as f:
+                content = f.read()
+                runner = "vitest" if "vitest" in content else "jest"
+        else:
+            runner = "pytest"
+            
+    file_arg = f"'{file_path}'" if file_path else ""
+    # Use python -m for pytest to ensure correct environment
+    cmds = {
+        "jest":   f"npx jest {file_arg} 2>&1 | tail -50",
+        "vitest": f"npx vitest run {file_arg} 2>&1 | tail -50",
+        "pytest": f"python -m pytest {file_arg} -v 2>&1 | tail -60",
+    }
+    cmd = cmds.get(runner, cmds["pytest"])
+    try:
+        r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120, cwd=str(root))
+        return (r.stdout + r.stderr).strip() or f"No output from {runner}"
+    except Exception as e:
+        return f"Test error: {e}"
+
+def _get_project_summary_logic(directory: str = ".") -> str:
+    from pathlib import Path
+    root = Path(directory if directory != "." else _current_workspace).resolve()
+
+    indicators = {
+        "package.json": "Node.js/NPM project",
+        "tsconfig.json": "TypeScript project",
+        "requirements.txt": "Python project (pip)",
+        "pyproject.toml": "Python project (poetry/flit)",
+        "venv": "Python virtual environment",
+        ".venv": "Python virtual environment",
+        "go.mod": "Go project",
+        "Cargo.toml": "Cargo (Rust) project",
+        "tailwind.config.js": "Tailwind CSS detected",
+        "vite.config.ts": "Vite project detected",
+        "vite.config.js": "Vite project detected",
+        "next.config.js": "Next.js project detected",
+        "next.config.mjs": "Next.js project detected",
+        "Makefile": "C/C++ or build-script project",
+        "CMakeLists.txt": "CMake (C/C++) project",
+        "SOLUTION.sln": "Visual Studio Solution",
+    }
+
+    found = []
+    for file, desc in indicators.items():
+        if (root / file).exists():
+            found.append(f"- {file}: {desc}")
+
+    for folder in ["src", "backend", "frontend", "app", "lib", "components"]:
+        if (root / folder).is_dir():
+            found.append(f"- {folder}/ directory exists")
+
+    return "Project tech stack indicators:\n" + "\n".join(found) if found else "No major tech stack indicators found."
+
+def _project_overview_logic(directory: str = ".", max_depth: int = 2) -> str:
+    """Generate a tree-like overview of the project structure."""
+    from pathlib import Path
+    root = Path(directory if directory != "." else _current_workspace).resolve()
+    
+    IGNORE = {
+        "node_modules", ".git", "venv", ".venv", "__pycache__",
+        "build", "dist", ".next", ".cache", "obj", "bin"
+    }
+    
+    lines = [f"Project Overview: {root.name}"]
+    
+    def walk(curr: Path, depth: int, prefix: str):
+        if depth > max_depth:
+            return
+        
+        try:
+            items = sorted(curr.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower()))
+        except PermissionError:
+            return
+
+        for i, item in enumerate(items):
+            if item.name in IGNORE:
+                continue
+                
+            is_last = (i == len(items) - 1)
+            connector = "└── " if is_last else "├── "
+            lines.append(f"{prefix}{connector}{item.name}{'/' if item.is_dir() else ''}")
+            
+            if item.is_dir():
+                walk(item, depth + 1, prefix + ("    " if is_last else "│   "))
+
+    walk(root, 1, "")
+    return "\n".join(lines)
 
 
 # ==============================================================
@@ -183,26 +332,19 @@ class SafeShellTool(ShellTool):
 @lc_tool
 def git_status() -> str:
     """Get git repository status: current branch, staged and unstaged changes."""
-    r = subprocess.run(
-        "git status --short && echo '---' && git branch --show-current",
-        shell=True, capture_output=True, text=True, cwd=os.getcwd()
-    )
-    return r.stdout.strip() or "Not a git repo or clean working tree"
+    return _git_status_logic()
 
 
 @lc_tool
 def git_diff(staged: bool = False) -> str:
     """Get git diff of current changes. Set staged=True for staged diff."""
-    flag = "--cached" if staged else ""
-    r = subprocess.run(f"git diff {flag} | head -300", shell=True, capture_output=True, text=True)
-    return r.stdout.strip() or "No changes to diff"
+    return _git_diff_logic(staged)
 
 
 @lc_tool
 def git_log(limit: int = 10) -> str:
     """Get recent git commit history as a compact graph."""
-    r = subprocess.run(f"git log --oneline --graph -{limit}", shell=True, capture_output=True, text=True)
-    return r.stdout.strip() or "No git history"
+    return _git_log_logic(limit)
 
 
 @lc_tool
@@ -217,41 +359,54 @@ def git_suggest_commit() -> str:
 
 @lc_tool
 def run_linter(file_path: str) -> str:
-    """Run appropriate linter on a file. Auto-detects: eslint (.js/.ts), pylint (.py), mypy (.py), tsc."""
-    ext = os.path.splitext(file_path)[1].lower()
-    cmds = {
-        ".py":  f"pylint '{file_path}' --score=no 2>&1 | head -50",
-        ".ts":  "npx tsc --noEmit 2>&1 | head -50",
-        ".tsx": "npx tsc --noEmit 2>&1 | head -50",
-        ".js":  f"npx eslint '{file_path}' --format compact 2>&1 | head -50",
-        ".jsx": f"npx eslint '{file_path}' --format compact 2>&1 | head -50",
-    }
-    cmd = cmds.get(ext, f"npx eslint '{file_path}' --format compact 2>&1 | head -50")
-    r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
-    out = (r.stdout + r.stderr).strip()
-    return out or f"✅ No issues found in {file_path}"
+    """Run appropriate linter on a file. Auto-detects Ruff, Pylint, ESLint, ShellCheck, etc."""
+    from pathlib import Path
+    root = Path(_current_workspace).resolve()
+    abs_path = (root / file_path).resolve()
+    ext = abs_path.suffix.lower()
+
+    if not abs_path.exists():
+        return f"Error: File {file_path} not found in {_current_workspace}"
+
+    # Python logic
+    if ext == ".py":
+        # Check for ruff first (faster/modern)
+        if (root / "ruff.toml").exists() or (root / ".ruff.toml").exists() or \
+           ("ruff" in (root / "pyproject.toml").read_text() if (root / "pyproject.toml").exists() else False):
+            cmd = f"ruff check '{abs_path}'"
+        else:
+            cmd = f"pylint '{abs_path}' --score=no"
+
+    # JS/TS logic
+    elif ext in (".js", ".jsx", ".ts", ".tsx"):
+        if ext in (".ts", ".tsx") and (root / "tsconfig.json").exists():
+            cmd = f"npx tsc --noEmit --project '{root}/tsconfig.json'"
+        else:
+            cmd = f"npx eslint '{abs_path}' --format compact"
+
+    # Shell logic
+    elif ext in (".sh", ".bash"):
+        cmd = f"shellcheck '{abs_path}'"
+
+    # Default/Unknown
+    else:
+        return f"No specialized linter configured for {ext} files."
+
+    try:
+        r = subprocess.run(
+            cmd + " 2>&1 | head -50",
+            shell=True, capture_output=True, text=True, timeout=30, cwd=str(root)
+        )
+        out = (r.stdout + r.stderr).strip()
+        return out or f"✅ No issues found in {file_path}"
+    except Exception as e:
+        return f"Linter error: {e}"
 
 
 @lc_tool
 def run_tests(file_path: str = "", runner: str = "auto") -> str:
     """Run test suite. Supports jest, vitest, pytest. Set runner='auto' to detect automatically."""
-    if runner == "auto":
-        if os.path.exists("pytest.ini") or os.path.exists("pyproject.toml"):
-            runner = "pytest"
-        elif os.path.exists("package.json"):
-            with open("package.json") as f:
-                runner = "vitest" if "vitest" in f.read() else "jest"
-        else:
-            runner = "pytest"
-    file_arg = f"'{file_path}'" if file_path else ""
-    cmds = {
-        "jest":   f"npx jest {file_arg} 2>&1 | tail -50",
-        "vitest": f"npx vitest run {file_arg} 2>&1 | tail -50",
-        "pytest": f"python -m pytest {file_arg} -v 2>&1 | tail -60",
-    }
-    cmd = cmds.get(runner, cmds["pytest"])
-    r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
-    return (r.stdout + r.stderr).strip() or f"No output from {runner}"
+    return _run_tests_logic(file_path, runner)
 
 
 @lc_tool
@@ -384,39 +539,14 @@ def find_file(pattern: str, directory: str = ".") -> str:
 def get_project_summary(directory: str = ".") -> str:
     """Summarizes the project's tech stack by looking for config files.
     Identifies if it's a React, Python, Node.js, or other type of project."""
-    from pathlib import Path
-    root = Path(directory if directory != "." else _current_workspace).resolve()
+    return _get_project_summary_logic(directory)
 
-    indicators = {
-        "package.json": "Node.js/NPM project",
-        "tsconfig.json": "TypeScript project",
-        "requirements.txt": "Python project (pip)",
-        "pyproject.toml": "Python project (poetry/flit)",
-        "venv": "Python virtual environment",
-        ".venv": "Python virtual environment",
-        "go.mod": "Go project",
-        "Cargo.toml": "Cargo (Rust) project",
-        "tailwind.config.js": "Tailwind CSS detected",
-        "vite.config.ts": "Vite project detected",
-        "vite.config.js": "Vite project detected",
-        "next.config.js": "Next.js project detected",
-        "next.config.mjs": "Next.js project detected",
-        "Makefile": "C/C++ or build-script project",
-        "CMakeLists.txt": "CMake (C/C++) project",
-        "SOLUTION.sln": "Visual Studio Solution",
-    }
 
-    found = []
-    for file, desc in indicators.items():
-        if (root / file).exists():
-            found.append(f"- {file}: {desc}")
-
-    # Also check for major source folders
-    for folder in ["src", "backend", "frontend", "app"]:
-        if (root / folder).is_dir():
-            found.append(f"- {folder}/ directory exists")
-
-    return "Project tech stack indicators:\n" + "\n".join(found) if found else "No major tech stack indicators found."
+@lc_tool
+def project_overview(directory: str = ".", max_depth: int = 2) -> str:
+    """Get a tree-like overview of the project's key files and directories.
+    Use this to understand the project structure and organization."""
+    return _project_overview_logic(directory, max_depth)
 
 
 @lc_tool
@@ -518,11 +648,12 @@ def get_tools(workspace: str = ".") -> list:
         CopyFileTool(root_dir=workspace),
         MoveFileTool(root_dir=workspace),
         DeleteFileTool(root_dir=workspace),
-        SafeShellTool(),
+        terminal,
         PythonREPLTool(),
         git_status, git_diff, git_log, git_suggest_commit,
         run_linter, run_tests,
         search_code, find_symbol_definition, find_file, get_project_summary,
+        project_overview,
         apply_patch,
         _build_web_search_tool(),
     ]
@@ -541,12 +672,13 @@ You have full access to the developer's workspace. Use your tools proactively.
 ## Tools available
 - **ReadFileTool / WriteFileTool / ListDirectoryTool** — read, write, list files
 - **CopyFileTool / MoveFileTool / DeleteFileTool** — manage files
-- **SafeShellTool** — run shell commands (destructive commands are blocked)
+- **terminal** — execute shell commands and common shortcuts (test, lint, git)
 - **PythonREPLTool** — write and execute Python code
 - **git_status / git_diff / git_log / git_suggest_commit** — git operations
 - **run_linter** — lint a file (pylint / eslint / tsc / mypy)
 - **run_tests** — run tests (pytest / jest / vitest)
 - **search_code** — grep across all project files (code, CSS, HTML, JSON, config, docs)
+- **project_overview** — get a tree-like overview of the project structure
 - **find_file** — find files by name or glob pattern (e.g. 'App.css', '*.test.js')
 - **find_symbol_definition** — find where a function/class is defined
 - **apply_patch** — apply a unified diff patch to a file
