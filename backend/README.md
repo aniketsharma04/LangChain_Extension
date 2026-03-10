@@ -29,6 +29,8 @@ pip install -r requirements.txt
 # 3. Configure
 cp .env.example .env
 # Edit .env — add your API keys
+# Optional but recommended for web search quality:
+# set TAVILY_API_KEY=tvly-... (free tier: 1000 searches/month)
 
 # 4. Start the server
 python server.py
