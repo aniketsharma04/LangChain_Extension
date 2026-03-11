@@ -23,7 +23,7 @@ export function getChatHtml(
              style-src 'nonce-${nonce}';
              script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenClaw AI</title>
+<title>Navyug AI</title>
 <style nonce="${nonce}">
   /* ── Reset & base ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -519,11 +519,7 @@ export function getChatHtml(
 </head>
 <body>
 
-<!-- ── Header ── -->
-<div class="header">
-  <span class="header-icon">🦾</span>
-  <span class="header-title">OpenClaw AI</span>
-</div>
+<!-- Rebranded - removed sub-header -->
 
 <!-- ── Provider / Model selector ── -->
 <div class="provider-row">
@@ -559,7 +555,7 @@ export function getChatHtml(
 <!-- ── Messages ── -->
 <div id="messages">
   <div class="welcome" id="welcomeMsg">
-    <h3>👋 OpenClaw AI</h3>
+    <h3>Navyug AI</h3>
     <p>Your AI-powered dev assistant. Ask anything about your code.</p>
     <div>
       <span class="chip">Generate Tests</span>
@@ -691,7 +687,7 @@ function startAssistantMessage() {
 
     const role = document.createElement('div');
     role.className = 'message-role';
-    role.textContent = 'OpenClaw';
+    role.textContent = 'Navyug AI';
 
     const typing = document.createElement('div');
     typing.className = 'typing-indicator';

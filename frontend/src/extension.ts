@@ -75,8 +75,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // ── Status bar ────────────────────────────────────────────────────────────
     const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBar.text = '$(hubot) OpenClaw';
-    statusBar.tooltip = 'OpenClaw AI — Click to open chat';
+    statusBar.text = '$(hubot) Navyug AI';
+    statusBar.tooltip = 'Navyug AI — Click to open chat';
     statusBar.command = 'openclaw.openChat';
     statusBar.show();
     context.subscriptions.push(statusBar);
@@ -85,14 +85,14 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('[OpenClaw] Running health check...');
     backendClient.healthCheck().then(ok => {
         if (ok) {
-            statusBar.text = '$(check) OpenClaw';
-            console.log('[OpenClaw] Backend health check passed ✅');
-            vscode.window.setStatusBarMessage('$(check) OpenClaw backend connected', 3000);
+            statusBar.text = '$(check) Navyug AI';
+            console.log('[Navyug AI] Backend health check passed ✅');
+            vscode.window.setStatusBarMessage('$(check) Navyug AI backend connected', 3000);
         } else {
-            statusBar.text = '$(warning) OpenClaw';
-            console.error('[OpenClaw] Backend health check FAILED ❌ — cannot reach', backendUrl);
+            statusBar.text = '$(warning) Navyug AI';
+            console.error('[Navyug AI] Backend health check FAILED ❌ — cannot reach', backendUrl);
             vscode.window.showWarningMessage(
-                `OpenClaw: Cannot reach backend at ${backendUrl}. Start the Python server first.`,
+                `Navyug AI: Cannot reach backend at ${backendUrl}. Start the Python server first.`,
                 'Dismiss'
             );
         }
