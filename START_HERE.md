@@ -1,8 +1,8 @@
-# OpenClaw AI Dev Platform — Quick Start
+# Navyug AI Dev Platform — Quick Start
 
 ## Project structure
 ```
-openclaw-complete/
+navyug-ai/
 ├── backend/    → Python FastAPI server  (start this first)
 └── frontend/   → VS Code Extension      (install and press F5)
 ```
@@ -37,7 +37,7 @@ python server.py
 
 You should see:
 ```
-🦾 OpenClaw Python Backend running on http://localhost:3579
+Navyug AI Python Backend running on http://localhost:3579
 ```
 
 ---
@@ -53,15 +53,15 @@ npm run compile
 Then in VS Code:
 1. Open the `frontend/` folder in VS Code
 2. Press **F5** → this opens a new VS Code window (Extension Development Host)
-3. In the new window, look for the **🦾 OpenClaw** icon in the Activity Bar (left sidebar)
-4. Click it → the chat panel opens
+3. In the new window, look for the **Navyug AI** icon in the Activity Bar (left sidebar)
+4. Click it → the chat panel (AI ChatAgent) opens
 
 ---
 
 ## Step 3 — Use it
 
 - **Chat:** Type in the panel, press Enter
-- **Tools on selected code:** Select code → right-click → **🦾 OpenClaw AI** → pick a tool
+- **Tools on selected code:** Select code → right-click → ** Navyug AI** → pick a tool
 - **Switch LLM:** Use the Provider/Model dropdowns at the top of the chat panel
 - **New session:** Click the `+` icon in the panel title bar
 - **Local models:** Make sure Ollama is running, select "Ollama (local)" in the dropdown
