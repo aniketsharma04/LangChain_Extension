@@ -1,4 +1,4 @@
-# OpenClaw — Python Backend
+# Navyug AI — Python Backend
 
 FastAPI + LangChain backend. Runs on port 3579, identical API to the old Node.js version.
 

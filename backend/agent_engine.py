@@ -256,8 +256,13 @@ def _run_tests_logic(file_path: str = "", runner: str = "auto") -> str:
         return f"Test error: {e}"
 
 def _get_project_summary_logic(directory: str = ".") -> str:
-    from pathlib import Path
-    root = Path(directory if directory != "." else _current_workspace).resolve()
+    # Resolve relative to _current_workspace
+    root = Path(_current_workspace).resolve()
+    if directory != ".":
+        root = (root / directory).resolve()
+    
+    if not root.exists():
+        return f"Error: Directory {directory} not found in {_current_workspace}"
 
     indicators = {
         "package.json": "Node.js/NPM project",
@@ -292,13 +297,20 @@ def _get_project_summary_logic(directory: str = ".") -> str:
 def _project_overview_logic(directory: str = ".", max_depth: int = 2) -> str:
     """Generate a tree-like overview of the project structure."""
     from pathlib import Path
-    root = Path(directory if directory != "." else _current_workspace).resolve()
     
+    # Resolve relative to _current_workspace
+    root = Path(_current_workspace).resolve()
+    if directory != ".":
+        root = (root / directory).resolve()
+    
+    if not root.exists():
+        return f"Error: Directory {directory} not found in {_current_workspace}"
+
     IGNORE = {
         "node_modules", ".git", "venv", ".venv", "__pycache__",
         "build", "dist", ".next", ".cache", "obj", "bin"
     }
-    
+
     lines = [f"Project Overview: {root.name}"]
     
     def walk(curr: Path, depth: int, prefix: str):
@@ -430,7 +442,14 @@ def search_code(query: str, directory: str = ".", regex: bool = False) -> str:
     }
     results = []
     pattern = _search_re.compile(query) if regex else None
-    root = Path(directory if directory != "." else _current_workspace).resolve()
+    
+    # Resolve relative to _current_workspace
+    root = Path(_current_workspace).resolve()
+    if directory != ".":
+        root = (root / directory).resolve()
+    
+    if not root.exists():
+        return f"Error: Directory {directory} not found in {_current_workspace}"
 
     try:
         for fpath in root.rglob("*"):
@@ -472,7 +491,12 @@ def find_symbol_definition(symbol: str, directory: str = ".") -> str:
         r"(?:def|class|function|const|let|var|type|interface)\s+" + _sym_re.escape(symbol) + r"\b"
     )
     results = []
-    root = Path(directory if directory != "." else _current_workspace).resolve()
+    root = Path(_current_workspace).resolve()
+    if directory != ".":
+        root = (root / directory).resolve()
+    
+    if not root.exists():
+        return f"Error: Directory {directory} not found in {_current_workspace}"
 
     try:
         for fpath in root.rglob("*"):
@@ -508,8 +532,13 @@ def find_file(pattern: str, directory: str = ".") -> str:
     """
     from pathlib import Path
 
-    root = Path(directory if directory != "." else _current_workspace).resolve()
-    results = []
+    # Resolve relative to _current_workspace
+    root = Path(_current_workspace).resolve()
+    if directory != ".":
+        root = (root / directory).resolve()
+    
+    if not root.exists():
+        return f"Error: Directory {directory} not found in {_current_workspace}"
 
     try:
         for fpath in root.rglob(pattern):
@@ -665,7 +694,7 @@ def get_tools(workspace: str = ".") -> list:
 # variables needed, LangGraph handles tool descriptions internally)
 # ==============================================================
 
-SYSTEM_PROMPT = """You are OpenClaw, an expert AI coding assistant embedded in VS Code.
+SYSTEM_PROMPT = """You are Navyug AI, an expert AI coding assistant embedded in VS Code.
 
 You have full access to the developer's workspace. Use your tools proactively.
 
@@ -750,6 +779,7 @@ def build_agent(
         tools,
         prompt=SYSTEM_PROMPT,
         checkpointer=_checkpointer,
+        handle_tool_errors=True, # Prevent loop crashes on tool exceptions
     )
     return agent
 
