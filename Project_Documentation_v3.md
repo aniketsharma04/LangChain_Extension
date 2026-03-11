@@ -36,7 +36,7 @@
 | **Code Tools** | 10 built-in one-click actions: generate tests, review code, find bugs, explain, refactor, generate docs, security audit, performance optimisation, complexity analysis, translate code |
 | **Custom Tools** | Drop a YAML file into a folder; it hot-reloads as a new tool automatically |
 | **Multi-LLM routing** | Switch provider and model from a dropdown in the sidebar |
-| **Agent mode** | The backend runs a ReAct agent with file system, git, shell, linting, and test runner tools |
+| **Agent mode** | The backend runs a ReAct agent with file system, git, shell, linting, and test runner tools (21 tools total) |
 
 ### 1.2 High-Level Architecture
 
@@ -48,7 +48,7 @@ The project has two independent layers that communicate over HTTP on `localhost:
 | Python Backend (FastAPI) | LLM routing, agent orchestration, tool execution |
 | Communication protocol | REST (JSON) + SSE streaming on `localhost:3579` |
 | LLM providers | OpenAI, Google Gemini, Ollama, vLLM, or any OpenAI-compatible URL |
-| Agent framework | LangGraph ReAct agent (via `langgraph.prebuilt`) with 17 tools |
+| Agent framework | LangGraph ReAct agent (via `langgraph.prebuilt`) with 21 tools |
 | Custom tools | YAML files hot-loaded from `./custom_tools/` |
 
 **Data flow:**  
@@ -79,8 +79,8 @@ openclaw-extension/
 
 | File | Purpose | Size |
 |---|---|---|
-| `server.py` | FastAPI application entry point, all HTTP endpoints | ~370 lines |
-| `agent_engine.py` | LangGraph ReAct agent, all tool definitions, streaming logic | ~400 lines |
+| `server.py` | FastAPI application entry point, all HTTP endpoints | ~560 lines |
+| `agent_engine.py` | LangGraph ReAct agent, all tool definitions, streaming logic | ~850 lines |
 | `llm_router.py` | LLM provider registry, `build_llm()` factory, health probing | ~160 lines |
 | `custom_tool_manager.py` | YAML tool loader, hot-reload watcher, LangChain tool builder | ~140 lines |
 | `requirements.txt` | Python package list (FastAPI, LangChain, LiteLLM, etc.) | — |
@@ -143,7 +143,7 @@ Every endpoint mirrors the shape of the original Node.js version so the frontend
 
 This file is the core of Navyug AI. It uses `langgraph.prebuilt.create_react_agent` to build a ReAct agent with all tool definitions. Session memory is handled by `MemorySaver` checkpointer, and streaming uses LangGraph's native `astream_events()` API.
 
-#### 3.2.1 Built-in Agent Tools (17 tools)
+#### 3.2.1 Built-in Agent Tools (21 tools)
 
 These tools are available to the LangChain agent on every request. The agent autonomously decides when to call them:
 
@@ -163,9 +163,13 @@ These tools are available to the LangChain agent on every request. The agent aut
 | `git_suggest_commit` | Analyse staged diff and return it for commit message generation | Custom `@lc_tool` |
 | `run_linter` | Auto-detect and run pylint, eslint, tsc, or mypy on a file | Custom `@lc_tool` |
 | `run_tests` | Auto-detect and run pytest, jest, or vitest. Supports `file_path` arg | Custom `@lc_tool` |
-| `search_code` | grep across `.py`/`.ts`/`.js`/`.go`/`.rs` files with string or regex mode | Custom `@lc_tool` |
+| `search_code` | grep across all project files (py/ts/js/go/rs/css/html/json/md) | Custom `@lc_tool` |
 | `find_symbol_definition` | Locate where a function, class, or variable is defined | Custom `@lc_tool` |
+| `find_file` | Find files by name or glob pattern (e.g. 'App.css', '*.test.js') | Custom `@lc_tool` |
+| `get_project_summary` | Identify project tech stack and key indicators (metadata) | Custom `@lc_tool` |
+| `project_overview` | Generate a tree-like overview of the project structure | Custom `@lc_tool` |
 | `apply_patch` | Apply a unified diff patch to a file safely using a temp file | Custom `@lc_tool` |
+| `web_search` | Search the web via DuckDuckGo (free, no API key needed) | Custom `@lc_tool` |
 
 #### 3.2.2 Built-in LLM Tools (10 prompt templates)
 
@@ -266,7 +270,7 @@ The frontend is a standard VS Code extension that registers a sidebar `WebviewVi
 This file runs when VS Code activates the extension (`onStartupFinished`). It:
 
 1. Creates a `BackendClient` pointing at the configured backend URL (default `http://localhost:3579`)
-2. Creates `Navyug AIChatViewProvider` and `ToolsProvider`
+2. Creates `Navyug AI ChatViewProvider` and `ToolsProvider`
 3. Calls `chatProvider.setToolsProvider(toolsProvider)` to wire the two together (avoids circular dependency)
 4. Registers the sidebar `WebviewViewProvider` for the `"openclawChatView"` view ID
 5. Registers all 10 tool commands + 3 chat commands + 1 tool-picker command
@@ -582,7 +586,10 @@ All fixes are present in the v4 codebase.
 | #10 | 🔴 CRITICAL | LangChain v1.2.x broke agent imports | `from langchain.agents import create_react_agent, AgentExecutor` removed in langchain v1.2.x. **Fix:** Migrated to `from langgraph.prebuilt import create_react_agent` + `MemorySaver` checkpointer. Rewrote `agent_engine.py` streaming to use `astream_events()`. |
 | #11 | 🟡 MEDIUM | `SafeShellTool.BLOCKED_PATTERNS` Pydantic v2 error | Class attribute without type annotation caused `PydanticUserError: model-field-missing-annotation`. **Fix:** Added `ClassVar[list[str]]` annotation. |
 | #12 | 🟡 MEDIUM | `StructuredTool` import path moved | `from langchain.tools import StructuredTool` removed. **Fix:** Changed to `from langchain_core.tools import StructuredTool` in `custom_tool_manager.py`. |
-| #13 | 🟠 HIGH | Activity Bar icon used codicon instead of file path | `package.json` used `$(hubot)` codicon for `viewsContainers.activitybar.icon` — requires file path. **Fix:** Created `media/openclaw-icon.svg` and updated manifest. |
+| #13 | 🟡 MEDIUM | Activity Bar icon used codicon instead of file path | `package.json` used `$(hubot)` codicon for `viewsContainers.activitybar.icon` — requires file path. **Fix:** Created `media/openclaw-icon.svg` and updated manifest. |
+| #14 | 🔴 HIGH | Path Resolution (WinError 3) | Tools were resolving paths relative to backend CWD instead of the active workspace. **Fix:** Implemented `_current_workspace` tracking in `agent_engine.py`. |
+| #15 | 🔴 HIGH | Tool Error Handling | LangGraph agent crashed on tool failures, corrupting state. **Fix:** Enabled `handle_tool_errors=True` in `create_react_agent`. |
+| #16 | ℹ️ INFO | Rebranding to Navyug AI | Full migration from OpenClaw to Navyug AI across UI, backend, and documentation. |
 
 ---
 

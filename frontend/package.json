@@ -1,7 +1,7 @@
 {
   "name": "openclaw",
-  "displayName": "OpenClaw AI Dev Assistant",
-  "description": "Copilot-like AI chat panel powered by OpenClaw backend",
+  "displayName": "Navyug AI Dev Assistant",
+  "description": "Copilot-like AI chat panel powered by Navyug AI backend",
   "version": "0.1.0",
   "publisher": "openclaw",
   "engines": {
@@ -39,63 +39,63 @@
     "commands": [
       {
         "command": "openclaw.openChat",
-        "title": "OpenClaw: Open Chat Panel",
+        "title": "Navyug AI: Open Chat Panel",
         "icon": "$(comment-discussion)"
       },
       {
         "command": "openclaw.clearChat",
-        "title": "OpenClaw: Clear Chat",
+        "title": "Navyug AI: Clear Chat",
         "icon": "$(clear-all)"
       },
       {
         "command": "openclaw.newSession",
-        "title": "OpenClaw: New Session",
+        "title": "Navyug AI: New Session",
         "icon": "$(add)"
       },
       {
         "command": "openclaw.runTool",
-        "title": "OpenClaw: Run Tool…",
+        "title": "Navyug AI: Run Tool…",
         "icon": "$(tools)"
       },
       {
         "command": "openclaw.tool.generate_tests",
-        "title": "OpenClaw: 🧪 Generate Tests"
+        "title": "Navyug AI: 🧪 Generate Tests"
       },
       {
         "command": "openclaw.tool.review_code",
-        "title": "OpenClaw: 🔍 Review Code"
+        "title": "Navyug AI: 🔍 Review Code"
       },
       {
         "command": "openclaw.tool.find_bugs",
-        "title": "OpenClaw: 🐛 Find Bugs"
+        "title": "Navyug AI: 🐛 Find Bugs"
       },
       {
         "command": "openclaw.tool.explain_code",
-        "title": "OpenClaw: 📖 Explain Code"
+        "title": "Navyug AI: 📖 Explain Code"
       },
       {
         "command": "openclaw.tool.refactor_code",
-        "title": "OpenClaw: ♻️ Refactor Code"
+        "title": "Navyug AI: ♻️ Refactor Code"
       },
       {
         "command": "openclaw.tool.generate_docs",
-        "title": "OpenClaw: 📝 Generate Docs"
+        "title": "Navyug AI: 📝 Generate Docs"
       },
       {
         "command": "openclaw.tool.security_analysis",
-        "title": "OpenClaw: 🔒 Security Analysis"
+        "title": "Navyug AI: 🔒 Security Analysis"
       },
       {
         "command": "openclaw.tool.optimize_performance",
-        "title": "OpenClaw: ⚡ Optimize Performance"
+        "title": "Navyug AI: ⚡ Optimize Performance"
       },
       {
         "command": "openclaw.tool.analyze_complexity",
-        "title": "OpenClaw: 📊 Analyze Complexity"
+        "title": "Navyug AI: 📊 Analyze Complexity"
       },
       {
         "command": "openclaw.tool.translate_code",
-        "title": "OpenClaw: 🔄 Translate Code"
+        "title": "Navyug AI: 🔄 Translate Code"
       }
     ],
     "menus": {
