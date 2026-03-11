@@ -30,6 +30,7 @@ from langchain_community.tools.file_management import (
     CopyFileTool, MoveFileTool, DeleteFileTool,
 )
 from langchain_experimental.tools.python.tool import PythonREPLTool
+from openclaw_bridge import get_openclaw_tools
 
 # ── Our LLM router ────────────────────────────────────────────────────────────
 from llm_router import build_llm
@@ -686,6 +687,13 @@ def get_tools(workspace: str = ".") -> list:
         apply_patch,
         _build_web_search_tool(),
     ]
+    # Add OpenClaw Ecosystem Tools
+    try:
+        oc_tools = get_openclaw_tools()
+        tools.extend(oc_tools)
+    except Exception as e:
+        print(f"Warning: Failed to load OpenClaw tools: {e}")
+
     return tools
 
 
