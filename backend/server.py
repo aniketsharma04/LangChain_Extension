@@ -110,14 +110,14 @@ async def lifespan(app: FastAPI):
     custom_tool_manager.watch_for_changes(
         lambda: logger.info("Custom tools reloaded")
     )
-    logger.info(f"🦾 OpenClaw Python Backend running on http://localhost:{PORT}")
+    logger.info(f"Navyug AI Python Backend running on http://localhost:{PORT}")
     logger.info(f"   Framework: FastAPI + LangChain + LiteLLM")
     logger.info(f"   Custom tools dir: {custom_tool_manager.tools_dir}")
     yield
     # Shutdown (nothing needed)
 
 
-app = FastAPI(title="OpenClaw Backend", version="2.0.0", lifespan=lifespan)
+app = FastAPI(title="Navyug AI Backend", version="2.0.0", lifespan=lifespan)
 PORT = int(os.getenv("PORT", "3579"))
 
 app.add_middleware(

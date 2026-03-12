@@ -71,7 +71,8 @@ promptTemplate: |
   {{args.code}}
 ```
 
-## VS Code extension
-
+## Navyug AI VS Code Extension
+    
+This is the backend implementation for the Navyug AI VS Code Extension.
 The extension connects to `http://localhost:3579` (same as before).
 Change `openclaw.backendUrl` in VS Code settings if you use a different port.
