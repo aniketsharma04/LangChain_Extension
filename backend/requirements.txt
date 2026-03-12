@@ -1,43 +1,32 @@
 # ==============================================================
 # Navyug AI — Python Backend Dependencies
 # pip install -r requirements.txt
-#
-# What each package REPLACES from the old Node.js backend:
 # ==============================================================
 
-# ── REPLACES: OpenClawOrchestrator.ts, AgenticChatEngineV2.ts ─
-langchain>=0.2.0
-langchain-core>=0.2.0
-langchain-community>=0.2.0      # ShellTool, FileManagementToolkit, ReadFileTool
-langchain-experimental>=0.0.60  # PythonREPLTool
+# ── OpenClaw Orchestration (replaces LangChain/LangGraph) ─────
+openclaw>=0.1.0
 
-# ── REPLACES: LLMRouter.ts (all 4 providers) ──────────────────
-litellm>=1.40.0                  # single router: OpenAI / Gemini / Ollama / vLLM
-langchain-openai>=0.1.0          # ChatOpenAI wrapper
+# ── LLM Router (multi-provider support) ───────────────────────
+litellm>=1.40.0
+langchain-openai>=0.1.0          # ChatOpenAI wrapper (used by builtin tools)
 langchain-google-genai>=1.0.0    # ChatGoogleGenerativeAI wrapper
 langchain-ollama>=0.1.0          # ChatOllama wrapper
+langchain-core>=0.2.0            # Core LangChain types for LLM router
 openai>=1.30.0
 google-generativeai>=0.7.0
 
-# ── REPLACES: server.ts (Express) ─────────────────────────────
+# ── Web Server ────────────────────────────────────────────────
 fastapi>=0.111.0
 uvicorn[standard]>=0.29.0
-sse-starlette>=2.1.0             # SSE streaming (replaces custom SSE in server.ts)
+sse-starlette>=2.1.0
 python-multipart>=0.0.9
 
-# ── REPLACES: CustomToolManager.ts (YAML hot-reload) ──────────
+# ── Custom Tool Manager (YAML hot-reload) ─────────────────────
 pyyaml>=6.0.1
 watchfiles>=0.21.0
-
-# ── Web search (replaces: not present in Node.js version) ─────
-ddgs>=9.11.0                     # free web search (DuckDuckGo), no API key needed
-tavily-python>=0.3.0             # optional: better results if TAVILY_API_KEY is set
 
 # ── Utilities ─────────────────────────────────────────────────
 python-dotenv>=1.0.0
 pydantic>=2.7.0
 httpx>=0.27.0
 aiofiles>=23.2.1
-gitpython>=3.1.43
-openclaw>=0.1.0
-langgraph>=0.1.0

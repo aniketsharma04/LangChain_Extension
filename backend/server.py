@@ -111,8 +111,8 @@ async def lifespan(app: FastAPI):
         lambda: logger.info("Custom tools reloaded")
     )
     logger.info(f"Navyug AI Python Backend running on http://localhost:{PORT}")
-    logger.info(f"   Framework: FastAPI + LangChain + LiteLLM")
-    logger.info(f"   Custom tools dir: {custom_tool_manager.tools_dir}")
+    logger.info(f"   Framework: FastAPI + OpenClaw + LiteLLM")
+    logger.info(f"   Orchestration: OpenClaw Local Agent")
     yield
     # Shutdown (nothing needed)
 
@@ -177,7 +177,7 @@ class FilesContextRequest(BaseModel):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "version": "2.0.0", "runtime": "python+fastapi+langchain"}
+    return {"status": "ok", "version": "2.0.0", "runtime": "python+fastapi+openclaw"}
 
 
 # ==============================================================
@@ -498,8 +498,8 @@ async def tools_catalog():
 @app.post("/api/admin/permissions/{session_id}")
 async def set_permissions(session_id: str, body: dict):
     """REPLACES: POST /api/admin/permissions/:sessionId in server.ts"""
-    # Permissions are enforced via LangChain's tool allow/block lists
-    # For now, store the level and apply on next agent build
+    # Permissions may be enforced via OpenClaw session config in the future.
+    # For now, store the level and log it.
     level = body.get("level", "standard")
     logger.info(f"Permissions set: session={session_id}, level={level}")
     return {"success": True, "message": f'Permission level "{level}" set'}
