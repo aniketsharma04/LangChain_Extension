@@ -136,6 +136,7 @@ def build_llm(provider: str, model_id: Optional[str] = None, temperature: float 
     No custom HTTP calls, no custom token counting, no custom retry logic —
     LangChain and LiteLLM handle all of that.
     """
+    provider = provider.lower()
     cfg = _providers.get(provider)
     resolved_model = model_id or (cfg.default_model if cfg else None)
     logger.info(f"Building LLM: provider={provider}, model={resolved_model}")

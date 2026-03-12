@@ -787,7 +787,6 @@ def build_agent(
         tools,
         prompt=SYSTEM_PROMPT,
         checkpointer=_checkpointer,
-        handle_tool_errors=True, # Prevent loop crashes on tool exceptions
     )
     return agent
 
