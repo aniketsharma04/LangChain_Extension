@@ -141,9 +141,9 @@ Every endpoint mirrors the shape of the original Node.js version so the frontend
 
 ### 3.2 agent_engine.py — The AI Brain
 
-This file is the core of Navyug AI. It uses `langgraph.prebuilt.create_react_agent` to build a ReAct agent with all tool definitions. Session memory is handled by `MemorySaver` checkpointer, and streaming uses LangGraph's native `astream_events()` API.
+This file is the core of Navyug AI. It uses `langgraph.prebuilt.create_react_agent` to build a ReAct agent with all tool definitions. Session memory is handled by `MemorySaver` checkpointer, and streaming uses LangGraph's native `astream_events()` API. It also integrates specialized tools and agents from the **OpenClaw Ecosystem** via a custom bridge.
 
-#### 3.2.1 Built-in Agent Tools (21 tools)
+#### 3.2.1 Built-in Agent Tools (22 tools)
 
 These tools are available to the LangChain agent on every request. The agent autonomously decides when to call them:
 
@@ -170,6 +170,7 @@ These tools are available to the LangChain agent on every request. The agent aut
 | `project_overview` | Generate a tree-like overview of the project structure | Custom `@lc_tool` |
 | `apply_patch` | Apply a unified diff patch to a file safely using a temp file | Custom `@lc_tool` |
 | `web_search` | Search the web via DuckDuckGo (free, no API key needed) | Custom `@lc_tool` |
+| `openclaw_proactive_agent` | specialized OpenClaw Proactive Agent for high-level, complex goals | OpenClaw Bridge Tool |
 
 #### 3.2.2 Built-in LLM Tools (10 prompt templates)
 
