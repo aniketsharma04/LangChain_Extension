@@ -1194,3 +1194,271 @@
 2026-03-12 09:32:57 | INFO     | watchfiles.main:308 - 1 change detected
 2026-03-12 09:32:58 | INFO     | watchfiles.main:308 - 1 change detected
 2026-03-12 09:32:58 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:06:00 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:06:05 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:06:26 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:08:23 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:08:24 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:08:33 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 10:08:34 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:08:34 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:08:34 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:08:34 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:08:34 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:08:34 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:08:34 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:08:38 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:08:39 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:08:43 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:08:44 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:08:44 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:08:44 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:08:44 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:08:44 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:08:44 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:09:02 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:09:21 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:09:22 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:09:23 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:09:28 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 10:09:28 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:09:28 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:09:28 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:09:28 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:09:28 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:09:28 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:09:28 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:09:39 | INFO     | watchfiles.main:308 - 3 changes detected
+2026-03-12 10:10:16 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:10:17 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:10:22 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:10:22 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:10:22 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:10:22 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:10:22 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:10:22 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:10:22 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:13:15 | INFO     | openclaw:340 - POST /api/chat/stream | provider=gemini, model=default, session=session_1773290563675_qyztws
+2026-03-12 10:13:15 | INFO     | openclaw.agent:885 - Building agent: provider=gemini, model=default, workspace=d:\Projects\Project_AniketPortfolio
+2026-03-12 10:13:15 | INFO     | openclaw.router:142 - Building LLM: provider=gemini, model=gemini-2.5-flash
+2026-03-12 10:13:15 | WARNING  | google_genai._api_client:105 - Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+2026-03-12 10:13:16 | INFO     | openclaw.agent:774 - Tools workspace set to: d:\Projects\Project_AniketPortfolio
+2026-03-12 10:13:16 | INFO     | openclaw.agent:763 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 10:13:16 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 10:13:18 | INFO     | openclaw.agent:83 - Rate-limit pacer: waiting 0.9s before next LLM call
+2026-03-12 10:13:21 | INFO     | openclaw.agent:83 - Rate-limit pacer: waiting 0.7s before next LLM call
+2026-03-12 10:13:24 | INFO     | openclaw.agent:83 - Rate-limit pacer: waiting 0.8s before next LLM call
+2026-03-12 10:15:43 | INFO     | openclaw:340 - POST /api/chat/stream | provider=gemini, model=default, session=session_1773290563675_qyztws
+2026-03-12 10:15:43 | INFO     | openclaw.agent:885 - Building agent: provider=gemini, model=default, workspace=d:\Projects\Project_AniketPortfolio
+2026-03-12 10:15:43 | INFO     | openclaw.router:142 - Building LLM: provider=gemini, model=gemini-2.5-flash
+2026-03-12 10:15:43 | WARNING  | google_genai._api_client:105 - Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+2026-03-12 10:15:44 | INFO     | openclaw.agent:774 - Tools workspace set to: d:\Projects\Project_AniketPortfolio
+2026-03-12 10:15:44 | INFO     | openclaw.agent:763 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 10:15:44 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 10:15:46 | INFO     | openclaw.agent:83 - Rate-limit pacer: waiting 0.7s before next LLM call
+2026-03-12 10:15:49 | INFO     | openclaw.agent:83 - Rate-limit pacer: waiting 1.2s before next LLM call
+2026-03-12 10:26:40 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:26:41 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:26:47 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 10:26:47 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:26:47 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:26:47 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:26:47 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:26:47 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:26:47 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:26:47 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:26:52 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:26:54 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:27:00 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:27:00 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:27:00 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:27:00 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:27:00 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:27:00 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:27:00 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:27:13 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:27:30 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:27:31 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:27:32 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:27:37 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 10:27:38 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:27:38 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:27:38 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:27:38 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:27:38 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:27:38 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:27:38 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:27:46 | INFO     | openclaw.agent:842 - Tools workspace set to: D:\Projects\Navyug_OpenClaw_Extension\openclaw-extension\backend
+2026-03-12 10:27:46 | INFO     | openclaw.agent:831 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 10:27:46 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 10:27:46 | ERROR    | openclaw.agent:755 - README Agent Error: build_llm() missing 1 required positional argument: 'provider'
+2026-03-12 10:27:46 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:27:59 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:00 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:05 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 10:28:06 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:28:06 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:28:06 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:28:06 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:28:06 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:28:06 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:28:06 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:11 | INFO     | openclaw.agent:847 - Tools workspace set to: D:\Projects\Navyug_OpenClaw_Extension\openclaw-extension\backend
+2026-03-12 10:28:11 | INFO     | openclaw.agent:836 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 10:28:11 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 10:28:11 | INFO     | openclaw.router:142 - Building LLM: provider=openai, model=None
+2026-03-12 10:28:14 | INFO     | openclaw.agent:725 - README Agent activated for request: Create a README for this project that highlights the new FastAPI backend.
+2026-03-12 10:28:15 | INFO     | httpx:1740 - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2026-03-12 10:28:15 | ERROR    | openclaw.agent:760 - README Agent Error: Error code: 401 - {'error': {'message': "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.openai.com/account/api-keys.", 'type': 'invalid_request_error', 'param': None, 'code': None}}
+2026-03-12 10:28:15 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:22 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:23 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:29 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:28:29 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:28:29 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:28:29 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:28:29 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:28:29 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:28:29 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:34 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:28:34 | WARNING  | openclaw.router:75 - Provider skipped: gemini (no GEMINI_API_KEY or GOOGLE_API_KEY)
+2026-03-12 10:28:34 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://localhost:11434)
+2026-03-12 10:28:34 | INFO     | openclaw.agent:847 - Tools workspace set to: D:\Projects\Navyug_OpenClaw_Extension\openclaw-extension\backend
+2026-03-12 10:28:34 | INFO     | openclaw.agent:836 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 10:28:34 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 10:28:34 | INFO     | openclaw.router:142 - Building LLM: provider=ollama, model=llama3.1:8b
+2026-03-12 10:28:35 | INFO     | openclaw.agent:725 - README Agent activated for request: Create a README for this project that highlights the new FastAPI backend.
+2026-03-12 10:28:37 | ERROR    | openclaw.agent:760 - README Agent Error: All connection attempts failed
+2026-03-12 10:28:37 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:48 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:49 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:55 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:28:56 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:29:06 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:29:11 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 10:29:12 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:29:12 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:29:12 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:29:12 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:29:12 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:29:12 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:29:12 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:29:17 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:29:24 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:29:24 | WARNING  | openclaw.router:75 - Provider skipped: gemini (no GEMINI_API_KEY or GOOGLE_API_KEY)
+2026-03-12 10:29:24 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://localhost:11434)
+2026-03-12 10:29:24 | INFO     | openclaw.agent:847 - Tools workspace set to: D:\Projects\Navyug_OpenClaw_Extension\openclaw-extension\backend
+2026-03-12 10:29:24 | INFO     | openclaw.agent:836 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 10:29:24 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 10:29:24 | INFO     | openclaw.router:142 - Building LLM: provider=ollama, model=llama3.1:8b
+2026-03-12 10:29:25 | INFO     | openclaw.agent:725 - README Agent activated for request: Create a README for this project that highlights the new FastAPI backend.
+2026-03-12 10:29:28 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:29:28 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:29:47 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:29:48 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:29:54 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:29:54 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:29:54 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:29:54 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:29:54 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:29:54 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:29:54 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:29:59 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:29:59 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:29:59 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:29:59 | INFO     | openclaw.agent:847 - Tools workspace set to: D:\Projects\Navyug_OpenClaw_Extension\openclaw-extension\backend
+2026-03-12 10:29:59 | INFO     | openclaw.agent:836 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 10:29:59 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 10:29:59 | INFO     | openclaw.router:142 - Building LLM: provider=gemini, model=gemini-2.5-flash
+2026-03-12 10:29:59 | WARNING  | google_genai._api_client:105 - Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+2026-03-12 10:30:01 | INFO     | openclaw.agent:725 - README Agent activated for request: Create a README for this project that highlights the new FastAPI backend.
+2026-03-12 10:30:03 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:30:22 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:30:25 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:30:49 | INFO     | watchfiles.main:308 - 3 changes detected
+2026-03-12 10:30:51 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:30:56 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:30:56 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyBo...)
+2026-03-12 10:30:56 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:30:56 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:30:56 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:30:56 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:30:56 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:32:29 | INFO     | openclaw:340 - POST /api/chat/stream | provider=gemini, model=default, session=session_1773291732446_y055wm
+2026-03-12 10:32:29 | INFO     | openclaw.agent:1000 - Building agent: provider=gemini, model=default, workspace=d:\Projects\Project_AniketPortfolio
+2026-03-12 10:32:29 | INFO     | openclaw.router:142 - Building LLM: provider=gemini, model=gemini-2.5-flash
+2026-03-12 10:32:29 | WARNING  | google_genai._api_client:105 - Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+2026-03-12 10:32:30 | INFO     | openclaw.agent:847 - Tools workspace set to: d:\Projects\Project_AniketPortfolio
+2026-03-12 10:32:30 | INFO     | openclaw.agent:836 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 10:32:30 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 10:32:32 | INFO     | openclaw.agent:847 - Tools workspace set to: d:\Projects\Project_AniketPortfolio
+2026-03-12 10:32:32 | INFO     | openclaw.agent:836 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 10:32:32 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 10:32:32 | INFO     | openclaw.router:142 - Building LLM: provider=gemini, model=gemini-2.5-flash
+2026-03-12 10:32:32 | WARNING  | google_genai._api_client:105 - Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+2026-03-12 10:32:33 | INFO     | openclaw.agent:725 - README Agent activated for request: create a readme for me
+2026-03-12 10:32:33 | ERROR    | openclaw.agent:760 - README Agent Error: Error calling model 'gemini-2.5-flash' (Too Many Requests): 429 Too Many Requests. {'message': '{\n  "error": {\n    "code": 429,\n    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\\nPlease retry in 26.312858328s.",\n    "status": "RESOURCE_EXHAUSTED",\n    "details": [\n      {\n        "@type": "type.googleapis.com/google.rpc.Help",\n        "links": [\n          {\n            "description": "Learn more about Gemini API quotas",\n            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"\n          }\n        ]\n      },\n      {\n        "@type": "type.googleapis.com/google.rpc.QuotaFailure",\n        "violations": [\n          {\n            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",\n            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",\n            "quotaDimensions": {\n              "location": "global",\n              "model": "gemini-2.5-flash"\n            },\n            "quotaValue": "20"\n          }\n        ]\n      },\n      {\n        "@type": "type.googleapis.com/google.rpc.RetryInfo",\n        "retryDelay": "26s"\n      }\n    ]\n  }\n}\n', 'status': 'Too Many Requests'}
+2026-03-12 10:32:34 | ERROR    | openclaw.agent:1083 - Streaming run error [rate_limit]: ⏳ Rate limit / quota exceeded: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \
+2026-03-12 10:32:34 | ERROR    | openclaw:352 - Stream error event: ⏳ Rate limit / quota exceeded: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \
+2026-03-12 10:35:25 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:35:25 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyAY...)
+2026-03-12 10:35:25 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:35:25 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:35:25 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:35:25 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:39:41 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:39:48 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:39:49 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:39:50 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:39:54 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 10:39:55 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:39:55 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyAY...)
+2026-03-12 10:39:55 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:39:55 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:39:55 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:39:55 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:39:55 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:40:00 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:41:16 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:41:16 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyAY...)
+2026-03-12 10:41:16 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:41:16 | INFO     | openclaw:113 - 🦾 OpenClaw Python Backend running on http://localhost:3579
+2026-03-12 10:41:16 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:41:16 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:42:11 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:42:12 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:42:13 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:42:15 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:42:17 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:42:18 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 10:42:19 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:42:19 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:42:19 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyAY...)
+2026-03-12 10:42:19 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:42:19 | INFO     | openclaw:113 - Navyug AI Python Backend running on http://localhost:3579
+2026-03-12 10:42:19 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:42:19 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:42:19 | INFO     | watchfiles.main:308 - 6 changes detected
+2026-03-12 10:43:54 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 10:43:54 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyAY...)
+2026-03-12 10:43:54 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 10:43:54 | INFO     | openclaw:113 - Navyug AI Python Backend running on http://localhost:3579
+2026-03-12 10:43:54 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 10:43:54 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 10:48:24 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 10:48:25 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 11:02:07 | INFO     | openclaw:340 - POST /api/chat/stream | provider=gemini, model=default, session=session_1773293509454_52qqdn
+2026-03-12 11:02:07 | INFO     | openclaw.agent:1000 - Building agent: provider=gemini, model=default, workspace=d:\Projects\Project_AniketPortfolio
+2026-03-12 11:02:07 | INFO     | openclaw.router:142 - Building LLM: provider=gemini, model=gemini-2.5-flash
+2026-03-12 11:02:07 | WARNING  | google_genai._api_client:105 - Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+2026-03-12 11:02:09 | INFO     | openclaw.agent:847 - Tools workspace set to: d:\Projects\Project_AniketPortfolio
+2026-03-12 11:02:09 | INFO     | openclaw.agent:836 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 11:02:09 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 11:02:11 | INFO     | openclaw.agent:847 - Tools workspace set to: d:\Projects\Project_AniketPortfolio
+2026-03-12 11:02:11 | INFO     | openclaw.agent:836 - Web search: using DuckDuckGo (free, no API key)
+2026-03-12 11:02:11 | INFO     | openclaw_bridge:18 - OpenClaw bridge initialized.
+2026-03-12 11:02:11 | INFO     | openclaw.router:142 - Building LLM: provider=gemini, model=gemini-2.5-flash
+2026-03-12 11:02:11 | WARNING  | google_genai._api_client:105 - Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+2026-03-12 11:02:15 | INFO     | openclaw.agent:725 - README Agent activated for request: create a readme file for my project
+2026-03-12 11:02:31 | ERROR    | openclaw.agent:1083 - Streaming run error [rate_limit]: ⏳ Rate limit / quota exceeded: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \
+2026-03-12 11:02:31 | ERROR    | openclaw:352 - Stream error event: ⏳ Rate limit / quota exceeded: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \

@@ -598,6 +598,180 @@ def apply_patch(file_path: str, patch_content: str) -> str:
         os.unlink(patch_file)
 
 
+def _read_key_files_logic() -> str:
+    from pathlib import Path
+    root = Path(_current_workspace).resolve()
+    FILES = [
+        "package.json", "requirements.txt", "pyproject.toml", "setup.py",
+        "Cargo.toml", "go.mod", "docker-compose.yml", "Makefile"
+    ]
+    results = []
+    for fname in FILES:
+        fpath = root / fname
+        if fpath.exists():
+            try:
+                content = fpath.read_text(encoding="utf-8", errors="replace")[:2000]
+                results.append(f"--- {fname} ---\n{content}")
+            except Exception as e:
+                results.append(f"--- {fname} ---\nError reading: {e}")
+    
+    return "\n\n".join(results) if results else "No core config files found."
+
+
+def _extract_existing_docs_logic() -> str:
+    from pathlib import Path
+    root = Path(_current_workspace).resolve()
+    results = []
+    
+    # Check for README
+    readme_files = list(root.glob("README*"))
+    for r in readme_files:
+        if r.is_file():
+            try:
+                content = r.read_text(encoding="utf-8", errors="replace")[:3000]
+                results.append(f"--- Existing {r.name} ---\n{content}")
+            except Exception: pass
+
+    # Check for docs/ folder
+    docs_dir = root / "docs"
+    if docs_dir.is_dir():
+        try:
+            for f in list(docs_dir.glob("*.md"))[:5]:
+                content = f.read_text(encoding="utf-8", errors="replace")[:1000]
+                results.append(f"--- Doc: {f.name} ---\n{content}")
+        except Exception: pass
+
+    # Detect main entry points for docstrings
+    entries = ["main.py", "app.py", "index.ts", "server.py", "agent_engine.py"]
+    for e in entries:
+        fpath = root / e
+        if fpath.exists():
+            try:
+                text = fpath.read_text(encoding="utf-8", errors="replace")
+                import re
+                match = re.search(r'^["\']{3}(.*?)["\']{3}', text, re.DOTALL)
+                if match:
+                    results.append(f"--- Docstring from {e} ---\n{match.group(1).strip()}")
+            except Exception: pass
+
+    return "\n\n".join(results) if results else "No existing documentation found."
+
+
+def _write_readme_to_file_logic(readme_content: str, mode: str = "create") -> str:
+    from pathlib import Path
+    root = Path(_current_workspace).resolve()
+    target = root / "README.md"
+    
+    try:
+        if mode == "create" and target.exists():
+            target = root / "README_generated.md"
+            target.write_text(readme_content, encoding="utf-8")
+            return f"✅ README.md already existed. Generated new one at: {target.name}"
+        
+        target.write_text(readme_content, encoding="utf-8")
+        verb = "created" if mode == "create" else "updated"
+        return f"✅ README.md {verb} successfully at: {target.absolute()}"
+    except Exception as e:
+        return f"❌ Error writing README: {str(e)}"
+
+
+@lc_tool
+def read_key_files() -> str:
+    """Read core project configuration files to detect tech stack and project metadata.
+    Reads package.json, requirements.txt, pyproject.toml, setup.py, Cargo.toml,
+    go.mod, docker-compose.yml, and Makefile if they exist.
+    Truncates each file to 2000 characters."""
+    return _read_key_files_logic()
+
+
+@lc_tool
+def extract_existing_docs() -> str:
+    """Extract existing documentation hints from README, docs/ folder, and module docstrings.
+    Helps understand the project's purpose and existing documentation style."""
+    return _extract_existing_docs_logic()
+
+
+@lc_tool
+def write_readme_to_file(readme_content: str, mode: str = "create") -> str:
+    """Write or update the README.md file in the project root.
+    Use mode='create' for new projects or mode='update' for existing ones.
+    In 'create' mode, if README.md exists, it saves as README_generated.md to avoid overwriting."""
+    return _write_readme_to_file_logic(readme_content, mode)
+
+
+def _readme_creation_agent_logic(user_request: str) -> str:
+    try:
+        # 1. Build a local toolset for the sub-agent
+        # We filter out the agent tool itself to prevent infinite recursion
+        all_tools = get_tools(_current_workspace)
+        sub_tools = [t for t in all_tools if getattr(t, "name", "") != "readme_creation_agent"]
+        
+        # 2. Get the LLM (same provider as main brain if possible)
+        from llm_router import build_llm, list_providers
+        
+        # Try to find an active provider
+        available = [p.name for p in list_providers()]
+        provider = "gemini" if "gemini" in available else ("openai" if "openai" in available else (available[0] if available else "openai"))
+        
+        llm = build_llm(provider=provider)
+        
+        # 3. Create the specialized agent
+        agent = create_react_agent(
+            llm,
+            sub_tools,
+            prompt=README_SYSTEM_PROMPT,
+        )
+        
+        logger.info(f"README Agent activated for request: {user_request}")
+        
+        # 4. Run the sub-agent loop
+        # We need a dedicated event loop if one isn't already running, 
+        # or use the existing one. For safety in a multi-threaded/async environment:
+        try:
+            loop = asyncio.get_running_loop()
+            import threading
+            from concurrent.futures import ThreadPoolExecutor
+            
+            def _run_sync():
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                try:
+                    return new_loop.run_until_complete(agent.ainvoke(
+                        {"messages": [HumanMessage(content=user_request)]}
+                    ))
+                finally:
+                    new_loop.close()
+            
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                result = executor.submit(_run_sync).result(timeout=120)
+        except RuntimeError:
+            # No loop running, fine to create one
+            result = asyncio.run(agent.ainvoke(
+                {"messages": [HumanMessage(content=user_request)]}
+            ))
+        except Exception as e:
+            return f"❌ Sub-agent execution failed: {e}"
+        
+        # 5. Extract the final answer
+        final_msg = result["messages"][-1].content
+        return _to_str(final_msg)
+        
+    except Exception as e:
+        logger.error(f"README Agent Error: {e}")
+        return f"❌ README Agent failed: {str(e)}"
+
+
+@lc_tool
+def readme_creation_agent(user_request: str) -> str:
+    """Specialized documentation agent. Call this whenever the user wants to CREATE, 
+    UPDATE, IMPROVE, or FIX a README or project documentation.
+    
+    Input: The user's specific request about documentation.
+    Output: Result of the documentation task (e.g., success message and file path).
+    """
+    return _readme_creation_agent_logic(user_request)
+
+
 # ==============================================================
 # Web search tool — DuckDuckGo (free) or Tavily (if key set)
 # ==============================================================
@@ -684,6 +858,8 @@ def get_tools(workspace: str = ".") -> list:
         run_linter, run_tests,
         search_code, find_symbol_definition, find_file, get_project_summary,
         project_overview,
+        read_key_files, extract_existing_docs, write_readme_to_file,
+        readme_creation_agent,
         apply_patch,
         _build_web_search_tool(),
     ]
@@ -702,11 +878,15 @@ def get_tools(workspace: str = ".") -> list:
 # variables needed, LangGraph handles tool descriptions internally)
 # ==============================================================
 
-SYSTEM_PROMPT = """You are Navyug AI, an expert AI coding assistant embedded in VS Code.
+SYSTEM_PROMPT = """You are Navyug AI, the primary Orchestrator and 'Brain' for this VS Code workspace.
 
-You have full access to the developer's workspace. Use your tools proactively.
+You have full access to the developer's workspace and tools.
+
+## DELEGATION RULES
+1. **README / Documentation**: If the user asks to create, update, improve, or fix a README or any project documentation, you MUST delegate the entire task to the `readme_creation_agent` tool. Send the user's full request to it and return its final response. Do NOT attempt to do documentation tasks yourself.
 
 ## Tools available
+- **readme_creation_agent** — Specialized agent for documentation (Delegate ALL README tasks here)
 - **ReadFileTool / WriteFileTool / ListDirectoryTool** — read, write, list files
 - **CopyFileTool / MoveFileTool / DeleteFileTool** — manage files
 - **terminal** — execute shell commands and common shortcuts (test, lint, git)
@@ -731,7 +911,50 @@ You have full access to the developer's workspace. Use your tools proactively.
 7. When asked to find or locate a file, use **find_file** first — it is faster and more accurate than listing directories one by one
 8. When asked to search for text content, use **search_code** — it searches ALL file types including CSS, HTML, JSON, Markdown, and config files
 9. **File Extensions**: ALWAYS use appropriate file extensions (e.g., `.py` for Python, `.ts`/`.tsx` for TypeScript, `.c` for C, `.cpp` for C++, `.md` for Markdown, `.json` for JSON). NEVER create extensionless files for code or data.
-10. **Tech Stack Consistency**: Before creating new files, check the project's tech stack using `get_project_summary` or by looking at existing files. Match the project's language and style (e.g., use C if the project is C-based)."""
+10. **Tech Stack Consistency**: Before creating new files, check the project's tech stack using `get_project_summary` or by looking at existing files. Match the project's language and style (e.g., use C if the project is C-based).
+11. **README Generation**: This task is handled by the specialized `readme_creation_agent`. Always delegate to it for anything related to READMEs or docs."""
+
+
+# ==============================================================
+# Specialized Agent Prompts
+# ==============================================================
+
+README_SYSTEM_PROMPT = """You are the specialized README Creation Agent. Your sole purpose is to create, update, and improve project documentation.
+
+HOW TO DECIDE CREATE vs UPDATE MODE:
+- Scan the project first using `project_overview`. If README.md already exists, AND the user said 'update', 'improve', 'fix', or 'add to' → UPDATE mode.
+- If no README.md exists OR user said 'create', 'generate', 'write' → CREATE mode.
+- If user says 'rewrite completely' → CREATE mode even if file exists.
+
+CREATE MODE — follow this sequence:
+1. Scan the project structure (`project_overview`) to understand what exists.
+2. Read key config files (`read_key_files`) to detect tech stack and metadata.
+3. Extract existing documentation (`extract_existing_docs`) to find code docstrings.
+4. Compose a complete, professional README.md from scratch.
+5. Save it to disk using `write_readme_to_file(mode='create')`.
+
+UPDATE MODE — follow this sequence:
+1. Read the EXISTING README.md first (`ReadFileTool`) — this is mandatory.
+2. Scan the project structure (`project_overview`).
+3. Read key config files (`read_key_files`).
+4. Identify what is outdated, missing, or incorrect in the existing README.
+5. Compose an improved version that KEEPS good content and fixes the rest.
+6. Save it back to README.md using `write_readme_to_file(mode='update')`.
+7. Tell the user exactly what you changed and why.
+
+README STRUCTURE TO FOLLOW:
+# Project Title
+> One-line description
+## 🚀 Overview
+## ✨ Features  
+## 🛠️ Tech Stack
+## 📦 Installation
+## 🔧 Usage
+## 🏗️ Project Structure (paste the scanned folder tree here)
+## 🤝 Contributing
+## 📄 License
+
+For UPDATE mode, respect the user's existing structure unless it is broken."""
 
 
 # ==============================================================
