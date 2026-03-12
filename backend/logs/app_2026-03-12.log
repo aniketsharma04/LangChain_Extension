@@ -1462,3 +1462,21 @@
 2026-03-12 11:02:15 | INFO     | openclaw.agent:725 - README Agent activated for request: create a readme file for my project
 2026-03-12 11:02:31 | ERROR    | openclaw.agent:1083 - Streaming run error [rate_limit]: ⏳ Rate limit / quota exceeded: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \
 2026-03-12 11:02:31 | ERROR    | openclaw:352 - Stream error event: ⏳ Rate limit / quota exceeded: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \
+2026-03-12 13:06:28 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 13:06:28 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyAY...)
+2026-03-12 13:06:28 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 13:06:28 | INFO     | openclaw:113 - Navyug AI Python Backend running on http://localhost:3579
+2026-03-12 13:06:28 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 13:06:28 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 13:06:28 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 13:09:32 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 13:09:36 | INFO     | openclaw.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 13:09:36 | INFO     | openclaw.router:73 - Provider registered: gemini (cloud, key=AIzaSyAY...)
+2026-03-12 13:09:36 | INFO     | openclaw.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 13:09:36 | INFO     | openclaw:113 - Navyug AI Python Backend running on http://localhost:3579
+2026-03-12 13:09:36 | INFO     | openclaw:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 13:09:36 | INFO     | openclaw:115 -    Custom tools dir: custom_tools
+2026-03-12 13:09:36 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 13:09:36 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 13:10:38 | INFO     | watchfiles.main:308 - 4 changes detected
+2026-03-12 13:10:38 | INFO     | watchfiles.main:308 - 4 changes detected

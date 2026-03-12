@@ -5,12 +5,14 @@
             "name": "Run OpenClaw Extension",
             "type": "extensionHost",
             "request": "launch",
+            "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}/frontend"
+                "--extensionDevelopmentPath=${workspaceFolder}/LangChain_Extension/frontend"
             ],
             "outFiles": [
-                "${workspaceFolder}/frontend/out/**/*.js"
-            ]
+                "${workspaceFolder}/LangChain_Extension/frontend/out/**/*.js"
+            ],
+            "preLaunchTask": "npm: compile - frontend"
         }
     ]
 }

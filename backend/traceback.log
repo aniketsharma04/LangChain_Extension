@@ -1,0 +1,98 @@
+﻿.\venv\Scripts\python : 
++--------------------- 
+Traceback (most recent 
+call last) 
+---------------------+
+At line:1 char:1
++ .\venv\Scripts\python 
+-c "import openclaw" 2>&1 
+| Out-File -FilePath  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (+  
+  --------------...----   
+ ----------+:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+| in <module>:1           
+                          
+                          
+|
+|                         
+                          
+                          
+|
+| D:\Projects\Navyug_LangC
+hain_Extension\LangChain_E
+xtension\backend\venv\Lib 
+|
+| \site-packages\openclaw\
+__init__.py:11 in 
+<module>                  
+        |
+|                         
+                          
+                          
+|
+|    8 from __future__ 
+import annotations        
+                          
+   |
+|    9                    
+                          
+                          
+|
+|   10 from cmdop import 
+CMDOPClient, 
+AsyncCMDOPClient          
+              |
+| > 11 from 
+cmdop.exceptions import ( 
+                          
+              |
+|   12     CMDOPError,    
+                          
+                          
+|
+|   13     
+ConnectionError,          
+                          
+               |
+|   14     
+AuthenticationError,      
+                          
+               |
+|                         
+                          
+                          
+|
+| +-----------------------
+---- locals --------------
+-------------+            
+|
+| | annotations = 
+_Feature((3, 7, 0, 
+'beta', 1), None, 
+16777216) |            |
+| +-----------------------
+--------------------------
+-------------+            
+|
++-------------------------
+--------------------------
+--------------------------
++
+ImportError: cannot 
+import name 
+'TimeoutError' from 
+'cmdop.exceptions' 
+(D:\Projects\Navyug_LangCh
+ain_Extension\LangChain_Ex
+tension\backend\venv\Lib\s
+i
+te-packages\cmdop\exceptio
+ns.py)

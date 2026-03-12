@@ -4,7 +4,7 @@
         {
             "type": "npm",
             "script": "compile",
-            "path": "frontend",
+            "path": "LangChain_Extension/frontend",
             "label": "npm: compile - frontend",
             "group": {
                 "kind": "build",
@@ -17,7 +17,7 @@
         {
             "type": "npm",
             "script": "watch",
-            "path": "frontend",
+            "path": "LangChain_Extension/frontend",
             "label": "npm: watch - frontend",
             "isBackground": true,
             "problemMatcher": [

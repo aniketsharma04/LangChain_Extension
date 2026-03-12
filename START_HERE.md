@@ -18,17 +18,22 @@ cd backend
 python -m venv venv
 
 # Activate it
-source venv/bin/activate          # Mac / Linux
-# venv\Scripts\activate           # Windows
+# Mac / Linux: source venv/bin/activate
+# Windows:     venv\Scripts\activate
 
-# Install dependencies
+# Install dependencies  (Note: langgraph is required)
 pip install -r requirements.txt
+pip install langgraph
+
+# IMPORTANT: If you get "ModuleNotFoundError: ... TimeoutError" when starting:
+# This is a known bug in the openclaw package. 
+# Open 'backend/venv/Lib/site-packages/openclaw/__init__.py' 
+# Change 'from cmdop.exceptions import ..., TimeoutError' 
+# To 'from cmdop.exceptions import ..., ConnectionTimeoutError as TimeoutError'
 
 # Configure — add at least one API key
 cp .env.example .env
 # Open .env and set OPENAI_API_KEY=sk-...  (or GEMINI_API_KEY for Gemini)
-# Optional but recommended for live/current-event answers:
-# set TAVILY_API_KEY=tvly-...  (free tier: 1000 searches/month)
 # For local models: make sure Ollama is running (ollama pull llama3.2)
 
 # Start the server
@@ -51,20 +56,15 @@ npm run compile
 ```
 
 Then in VS Code:
-1. Open the `frontend/` folder in VS Code
+1. Open the `LangChain_Extension/frontend/` folder in VS Code
 2. Press **F5** → this opens a new VS Code window (Extension Development Host)
 3. In the new window, look for the **Navyug AI** icon in the Activity Bar (left sidebar)
-4. Click it → the chat panel (AI ChatAgent) opens
-
----
-
-## Step 3 — Use it
-
 - **Chat:** Type in the panel, press Enter
 - **Tools on selected code:** Select code → right-click → ** Navyug AI** → pick a tool
 - **Switch LLM:** Use the Provider/Model dropdowns at the top of the chat panel
 - **New session:** Click the `+` icon in the panel title bar
 - **Local models:** Make sure Ollama is running, select "Ollama (local)" in the dropdown
+4. Click it → the chat panel opens
 
 ---
 
@@ -72,8 +72,8 @@ Then in VS Code:
 
 | Problem | Fix |
 |---|---|
-| "Cannot reach backend" warning | Make sure `python server.py` is running |
-| No providers in dropdown | Backend is not running or API keys not set in `.env` |
-| Ollama shows ⚠ | Run `ollama serve` and `ollama pull llama3.2` |
-| Extension not showing | Run `npm run compile` first, then F5 |
-| Tools not appearing in right-click | Select some code first — menu only shows when code is selected |
+| "TimeoutError" on startup | See the `openclaw` patch mentioned in Step 1 above. |
+| Red squiggles in server.py | Press `Ctrl+Shift+P` -> `Python: Select Interpreter` -> choose the one in `./backend/venv/`. |
+| "Cannot reach backend" | Make sure `python server.py` is running in your terminal first. |
+| F5 fails (cwd not found) | Ensure the `.vscode/launch.json` paths point correctly to `LangChain_Extension/frontend`. |
+| Extension not showing | Run `npm run compile` first, then F5. |
