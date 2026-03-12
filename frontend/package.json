@@ -164,16 +164,16 @@
     "submenus": [
       {
         "id": "openclaw.submenu",
-        "label": "OpenClaw AI"
+        "label": "Navyug AI"
       }
     ],
     "configuration": {
-      "title": "OpenClaw",
+      "title": "Navyug AI",
       "properties": {
         "openclaw.backendUrl": {
           "type": "string",
           "default": "http://localhost:3579",
-          "description": "OpenClaw backend URL"
+          "description": "Navyug AI backend URL"
         },
         "openclaw.defaultProvider": {
           "type": "string",

@@ -1529,3 +1529,12 @@
 2026-03-12 14:05:58 | INFO     | watchfiles.main:308 - 1 change detected
 2026-03-12 14:05:59 | INFO     | watchfiles.main:308 - 1 change detected
 2026-03-12 14:06:02 | INFO     | watchfiles.main:308 - 5 changes detected
+2026-03-12 14:06:03 | INFO     | navyug.router:62 - Provider skipped: openai (no OPENAI_API_KEY)
+2026-03-12 14:06:03 | INFO     | navyug.router:73 - Provider registered: gemini (cloud, key=AIzaSyAY...)
+2026-03-12 14:06:03 | INFO     | navyug.router:86 - Provider registered: ollama (local, url=http://192.168.3.191:11434)
+2026-03-12 14:06:03 | INFO     | navyug:113 - Navyug AI Python Backend running on http://localhost:3579
+2026-03-12 14:06:03 | INFO     | navyug:114 -    Framework: FastAPI + LangChain + LiteLLM
+2026-03-12 14:06:03 | INFO     | navyug:115 -    Custom tools dir: custom_tools
+2026-03-12 14:06:03 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 14:06:09 | INFO     | watchfiles.main:308 - 1 change detected
+2026-03-12 14:09:12 | INFO     | watchfiles.main:308 - 1 change detected
