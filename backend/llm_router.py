@@ -20,7 +20,7 @@ import logging
 from typing import Optional
 from dataclasses import dataclass, field
 
-logger = logging.getLogger('openclaw.router')
+logger = logging.getLogger('navyug.router')
 
 # ── LangChain provider wrappers (pip install langchain-openai etc.) ──────────
 from langchain_openai import ChatOpenAI

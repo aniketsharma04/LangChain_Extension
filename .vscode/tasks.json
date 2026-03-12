@@ -4,7 +4,7 @@
         {
             "type": "npm",
             "script": "compile",
-            "path": "LangChain_Extension/frontend",
+            "path": "openclaw-extension/frontend",
             "label": "npm: compile - frontend",
             "group": {
                 "kind": "build",
@@ -17,7 +17,7 @@
         {
             "type": "npm",
             "script": "watch",
-            "path": "LangChain_Extension/frontend",
+            "path": "openclaw-extension/frontend",
             "label": "npm: watch - frontend",
             "isBackground": true,
             "problemMatcher": [

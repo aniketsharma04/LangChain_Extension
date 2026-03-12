@@ -35,7 +35,7 @@ from openclaw_bridge import get_openclaw_tools
 # ── Our LLM router ────────────────────────────────────────────────────────────
 from llm_router import build_llm
 
-logger = logging.getLogger('openclaw.agent')
+logger = logging.getLogger('navyug.agent')
 
 # Module-level workspace — set by get_tools() so custom @lc_tool functions
 # automatically resolve "." to the user's opened project, not the backend CWD.

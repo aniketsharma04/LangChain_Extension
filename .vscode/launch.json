@@ -7,10 +7,10 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}/LangChain_Extension/frontend"
+                "--extensionDevelopmentPath=${workspaceFolder}/openclaw-extension/frontend"
             ],
             "outFiles": [
-                "${workspaceFolder}/LangChain_Extension/frontend/out/**/*.js"
+                "${workspaceFolder}/openclaw-extension/frontend/out/**/*.js"
             ],
             "preLaunchTask": "npm: compile - frontend"
         }
