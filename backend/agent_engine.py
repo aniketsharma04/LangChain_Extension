@@ -715,6 +715,10 @@ def _readme_creation_agent_logic(user_request: str) -> str:
         
         llm = build_llm(provider=provider)
         
+        # Attach rate-limit pacer to prevent free-tier RPM exhaustion in the sub-agent
+        pacer = RateLimitPacer(delay_seconds=3.0)
+        llm.callbacks = [pacer]
+        
         # 3. Create the specialized agent
         agent = create_react_agent(
             llm,
