@@ -636,7 +636,8 @@ def _extract_existing_docs_logic() -> str:
     docs_dir = root / "docs"
     if docs_dir.is_dir():
         try:
-            for f in list(docs_dir.glob("*.md"))[:5]:
+            md_files = list(docs_dir.glob("*.md"))
+            for f in md_files[:5]:
                 content = f.read_text(encoding="utf-8", errors="replace")[:1000]
                 results.append(f"--- Doc: {f.name} ---\n{content}")
         except Exception: pass
@@ -1130,8 +1131,8 @@ async def run_simple(
 
         # Extract the final AI message
         messages = result.get("messages", [])
-        output = ""
-        tool_call_count = 0
+        output: str = ""
+        tool_call_count: int = 0
         for msg in messages:
             if hasattr(msg, "content") and msg.type == "ai" and not getattr(msg, "tool_calls", None):
                 output = _to_str(msg.content)
